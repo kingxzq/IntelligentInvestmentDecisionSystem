@@ -3,244 +3,161 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>智能投资决策系统</title>
+  <title>基于AI的多agent智能投资决策系统</title>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
   <style>
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-      background: linear-gradient(180deg, #f4f7ff 0%, #eef3ff 100%);
-      color: #172b4d;
+    body { margin: 0; background: #f3f4f6; color: #1f2937; font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+    .layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+    .sidebar { background: #fff; border-right: 1px solid #e5e7eb; padding: 18px 12px; }
+    .logo { font-size: 18px; font-weight: 800; line-height: 1.35; margin-bottom: 18px; color: #1f2937; }
+    .tab-btn {
+      width: 100%; text-align: left; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+      padding: 10px 12px; margin-bottom: 8px; cursor: pointer; color: #374151; font-weight: 600;
     }
-    .app { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
-    .sidebar {
-      background: #f7f9ff;
-      border-right: 1px solid #dce5ff;
-      padding: 20px 14px;
-      position: sticky;
-      top: 0;
-      height: 100vh;
-    }
-    .brand {
-      border-radius: 16px;
-      padding: 16px;
-      background: #ffffff;
-      border: 1px solid #dde6ff;
-      box-shadow: 0 6px 18px rgba(42, 88, 170, .08);
-      margin-bottom: 14px;
-    }
-    .brand h2 { margin: 4px 0 8px; font-size: 34px; color: #2d5bdb; }
-    .brand p { margin: 0; color: #597299; }
-    .menu button {
-      width: 100%;
-      margin: 8px 0;
-      padding: 10px 12px;
-      border: 1px solid #d5dfff;
-      border-radius: 12px;
-      background: #fff;
-      color: #2a3f70;
-      cursor: pointer;
-      text-align: left;
-      font-weight: 600;
-    }
-    .menu button.active {
-      background: linear-gradient(135deg, #3869f6, #4d8cff);
-      color: #fff;
-      border-color: transparent;
-      box-shadow: 0 10px 20px rgba(53, 108, 237, .28);
-    }
-    .main { padding: 18px; }
-    .panel {
-      background: #fff;
-      border: 1px solid #dde6ff;
-      border-radius: 18px;
-      box-shadow: 0 10px 28px rgba(52, 89, 167, .1);
-      padding: 16px;
-      margin-bottom: 14px;
-    }
-    .hero {
-      background: linear-gradient(120deg, #3d67dd, #4f8ceb);
-      color: #fff;
-      border: none;
-    }
-    .hero h1 { margin: 6px 0 10px; font-size: 38px; }
-    .hero p { margin: 0 0 12px; opacity: .95; }
-    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-    .kpi {
-      padding: 14px;
-      border-radius: 14px;
-      background: #ffffff;
-      border: 1px solid #dce7ff;
-    }
-    .kpi b { display: block; font-size: 28px; color: #1b376f; margin-top: 4px; }
-    .kpi span { color: #56b177; font-weight: 600; }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .row-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
-    .chart { width: 100%; height: 300px; }
-    .chart-sm { width: 100%; height: 240px; }
-    label { display: block; margin-bottom: 6px; color: #35507f; font-weight: 600; }
-    input, textarea, button, select {
-      width: 100%;
-      border: 1px solid #ccd9fc;
-      border-radius: 10px;
-      padding: 10px;
-      font-size: 14px;
-      background: #fff;
-      color: #1e3768;
-    }
-    textarea { min-height: 90px; resize: vertical; }
-    button.primary {
-      background: linear-gradient(135deg, #3869f6, #4f8ceb);
-      color: #fff;
-      border: none;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    button.secondary { background: #eff4ff; cursor: pointer; }
-    .hidden { display: none !important; }
-    .auth-wrap { display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px; }
-    .tip-list li { margin: 8px 0; }
-    .pill { display:inline-block; background:#e9f0ff; color:#3458a3; border-radius:999px; padding:4px 10px; margin:4px 6px 0 0; font-size:12px; }
-    .timeline { border-left: 3px solid #dbe6ff; padding-left: 10px; }
-    .timeline-item { margin-bottom: 10px; }
-    .timeline-item b { color: #2d56b5; }
-    @media (max-width: 1100px) {
-      .app { grid-template-columns: 1fr; }
-      .sidebar { position: static; height: auto; }
-      .row, .row-3, .kpi-grid, .auth-wrap { grid-template-columns: 1fr; }
-    }
+    .tab-btn.active { background: #f9fafb; border-color: #d1d5db; }
+    .main { padding: 16px 20px 24px; }
+    .title { font-size: 42px; margin: 0 0 12px; color: #1e3a5f; }
+    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+    .auth-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    label { display: block; margin-bottom: 6px; color: #6b7280; font-size: 13px; font-weight: 600; }
+    input, textarea, button { width: 100%; border: 1px solid #d1d5db; border-radius: 10px; padding: 10px; font-size: 14px; background:#fff; }
+    textarea { min-height: 86px; resize: vertical; }
+    button { cursor: pointer; font-weight: 700; }
+    .primary { background: #1f3f66; color: #fff; }
+    .secondary { background: #fff; color: #374151; }
+    .mini { font-size: 12px; color: #6b7280; }
+    .value-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eef2f7; }
+    .value-row:last-child { border-bottom: none; }
+    .pill { display:inline-block; padding:4px 8px; border-radius:999px; background:#f3f4f6; margin:0 6px 6px 0; font-size:12px; }
+    .chart { width: 100%; height: 280px; }
+    .chart-sm { width: 100%; height: 220px; }
+    .hidden { display:none !important; }
+    .report { line-height: 1.8; white-space: pre-wrap; color: #334155; }
+    .history-item { padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 8px; }
+    @media (max-width: 1080px) { .layout { grid-template-columns: 1fr; } .row,.row-3,.auth-wrap { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
-  <div class="app">
-    <aside class="sidebar">
-      <div class="brand">
-        <div style="letter-spacing:2px;color:#5f7fcf;font-size:12px;">INVESTMENT PORTAL</div>
-        <h2>投资驾驶舱</h2>
-        <p>亮色管理中台风格 · 图表驱动总览与模块分页</p>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="logo">智能投资决策系统</div>
+    <div id="tabList"></div>
+  </aside>
+
+  <main class="main">
+    <section id="authCard" class="card">
+      <h3>登录 / 注册</h3>
+      <div class="auth-wrap">
+        <div><label>用户名</label><input id="username" placeholder="investor01" /></div>
+        <div><label>密码</label><input id="password" type="password" placeholder="请输入密码" /></div>
       </div>
-      <div id="menu" class="menu"></div>
-    </aside>
+      <div class="row" style="margin-top:10px;">
+        <button id="loginBtn" class="primary">登录</button>
+        <button id="registerBtn" class="secondary">注册</button>
+      </div>
+      <div id="authMsg" style="color:#b91c1c;margin-top:8px;"></div>
+    </section>
 
-    <main class="main">
-      <section id="authCard" class="panel">
-        <div class="auth-wrap">
-          <div class="panel hero">
-            <div style="font-size:13px;opacity:.85">智能投资协同平台</div>
-            <h1>六模块决策闭环看板</h1>
-            <p>从市场情报到投资策略，统一图表化呈现，减少 JSON 噪音，提升管理可读性。</p>
-            <div class="row-3">
-              <div class="kpi"><div>模块数量</div><b>6</b><span>实时</span></div>
-              <div class="kpi"><div>默认演示数据</div><b>1</b><span>可用</span></div>
-              <div class="kpi"><div>历史复现</div><b>分页</b><span>支持</span></div>
-            </div>
-          </div>
-          <div class="panel">
-            <h3>登录系统</h3>
-            <label>用户名</label>
-            <input id="username" placeholder="例如 investor01" />
-            <label style="margin-top:8px;">密码</label>
-            <input id="password" type="password" placeholder="请输入密码" />
-            <div class="row" style="margin-top:10px;">
-              <button id="loginBtn" class="primary">登录</button>
-              <button id="registerBtn" class="secondary">注册</button>
-            </div>
-            <div id="authMsg" style="color:#c83a3a;margin-top:10px;"></div>
-          </div>
-        </div>
-      </section>
+    <section id="mainArea" class="hidden">
+      <h1 class="title">基于AI的多agent智能投资决策系统</h1>
+      <div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+        <div>当前用户：<b id="currentUser"></b></div>
+        <button id="logoutBtn" class="secondary" style="width:auto;">退出登录</button>
+      </div>
 
-      <section id="mainArea" class="hidden">
-        <section class="panel hero">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
-            <div>
-              <div style="font-size:13px;opacity:.85">系统治理与资产协同</div>
-              <h1 style="margin:4px 0;font-size:34px;">管理驾驶舱</h1>
-              <p>当前用户：<b id="currentUser"></b> · 顶部画像在所有模块页统一展示</p>
-            </div>
-            <button id="logoutBtn" class="secondary" style="width:auto;padding:8px 14px;">退出登录</button>
-          </div>
-          <div id="profilePills"></div>
-        </section>
-
-        <section id="view-overview" class="panel view"></section>
-        <section id="view-history" class="panel view hidden"></section>
-        <section id="view-module" class="panel view hidden"></section>
-      </section>
-    </main>
-  </div>
+      <section id="page1" class="page card"></section>
+      <section id="page2" class="page card hidden"></section>
+      <section id="page3" class="page card hidden"></section>
+      <section id="page4" class="page card hidden"></section>
+      <section id="page5" class="page card hidden"></section>
+    </section>
+  </main>
+</div>
 
 <script>
 (() => {
+  const sampleDca = Array.from({ length: 60 }, (_, i) => {
+    const month = i + 1;
+    const invested = Math.round(1333.33 * month * 100) / 100;
+    const value = Math.round((1333.33 * month + month * month * 18.2) * 100) / 100;
+    return { 月份: month, 累计投入: invested, 累计价值: value, 累计收益: Math.round((value - invested) * 100) / 100 };
+  });
+
   const DEFAULT_DATA = {
-    investment_advice: '建议激进型投资者采用“核心指数 + 成长行业 + 风险再平衡”策略。',
+    investment_advice: '## 📝 您的个性化投资建议报告\n\n建议维持激进风格，但按半年再平衡，控制回撤。\n\n1) 核心配置以沪深300/中证500/创业板为主；\n2) 科技与新能源保留弹性仓位；\n3) 回撤超过20%时降低风险仓位。',
     user_profile: {
-      basic: { age_group: '25-35', investable_assets: 80000, asset_currency: 'CNY' },
-      goal: { specific_goal: '资产增值', investment_horizon: '长期（3年以上）', expected_return: '追求高收益>10%' },
-      risk_tolerance: { risk_level: '激进型', max_loss_acceptance: '>20%' },
-      preferences: { preferred_sectors: ['教育', 'AI'] }
+      basic: { age_group: '25-35', income_range: '10-30万', investable_assets: 80000, asset_currency: 'CNY' },
+      goal: { investment_horizon: '长期（3年以上）', specific_goal: '资产增值', expected_return: '追求高收益>10%' },
+      risk_tolerance: { max_loss_acceptance: '>20%', investment_experience: '少量经验', income_stability: '稳定', risk_level: '激进型' },
+      preferences: { preferred_sectors: ['教育', 'AI'], esg_preference: '无明确偏好', liquidity_needs: '无随时支取需求' }
     },
-    market_intelligence_report: '市场情绪中性偏积极，成长行业仍具备机会但波动较大。',
-    market_realtime_data: { 宏观经济: [{ 标题: '全年经济向新向优', 来源: '财经媒体' }] },
-    risk_metrics: { 风险等级: '激进型', VaR_95: { 单日: -0.026, 年度: -0.41 }, 夏普比率: 0.9, 信息比率: 0.4 },
-    risk_assessment_report: '整体风险等级中等偏高，与激进型画像匹配。',
     asset_allocation_model: {
+      风险等级: '激进型',
+      核心理念: '追求高收益，承受高风险',
       配置比例: { 股票类: 0.8, 债券类: 0.1, 现金及等价物: 0.05, 另类投资: 0.05 },
-      详细配置: { 沪深300指数基金: 0.304, 中证500指数基金: 0.248, 创业板ETF: 0.152, 科技ETF: 0.08, 新能源ETF: 0.016, 信用债基金: 0.1, 货币市场基金: 0.05, 黄金ETF: 0.05 }
+      预期年化收益: '12-15%',
+      预期最大回撤: '20%',
+      详细配置: { 沪深300指数基金: 30.4, 中证500指数基金: 24.8, 创业板ETF: 15.2, 科技ETF: 8, 新能源ETF: 1.6, 信用债基金: 10, 货币市场基金: 5, 黄金ETF: 5 }
     },
     investment_calculation: {
-      复利计算: { 初始投资: 80000, 期末价值: 128840.8, 总收益率: 61.05 },
+      复利计算: { 期末价值: 128840.8, 总收益率: 61.05 },
+      定投计算: { 期末价值: 103249.43, 总收益率: 29.06 },
+      定投收益曲线: sampleDca,
+      不同持有期限收益: [
+        { 持有年限: 1, 总收益率: 10 },
+        { 持有年限: 3, 总收益率: 33.1 },
+        { 持有年限: 5, 总收益率: 61.05 },
+        { 持有年限: 10, 总收益率: 159.37 }
+      ],
       不同情景分析: [
         { 情景: '悲观', 总收益率: 27.63 },
         { 情景: '基准', 总收益率: 61.05 },
         { 情景: '乐观', 总收益率: 101.14 }
-      ]
-    },
-    visualization_data: {
-      资产配置饼图: { 数据: { 标签: ['沪深300', '中证500', '创业板', '科技', '新能源', '信用债', '货币', '黄金'], 比例: [30.4, 24.8, 15.2, 8, 1.6, 10, 5, 5] } },
-      定投收益曲线: { 数据: { 系列: [
-        { 名称: '累计投入', 数据: [1333, 2667, 4000, 5333, 6667, 8000] },
-        { 名称: '累计价值', 数据: [1333, 2678, 4033, 5400, 6779, 8169] }
-      ] } }
+      ],
+      各资产预期收益: {
+        沪深300指数基金: { 预期年化收益: 10 },
+        中证500指数基金: { 预期年化收益: 10 },
+        创业板ETF: { 预期年化收益: 10 },
+        科技ETF: { 预期年化收益: 10 },
+        新能源ETF: { 预期年化收益: 10 },
+        信用债基金: { 预期年化收益: 10 },
+        货币市场基金: { 预期年化收益: 2.5 },
+        黄金ETF: { 预期年化收益: 5 }
+      }
     }
   };
-
-  const PAGES = [
-    { id: 'overview', label: '驾驶舱总览' },
-    { id: 'history', label: '历史趋势分页' },
-    { id: 'm1', label: '模块1 市场情报' },
-    { id: 'm2', label: '模块2 风险计算' },
-    { id: 'm3', label: '模块3 资产配置' },
-    { id: 'm4', label: '模块4 投资计算' },
-    { id: 'm5', label: '模块5 风险评估' },
-    { id: 'm6', label: '模块6 投资策略' }
-  ];
 
   const state = {
     token: localStorage.getItem('sessionToken') || '',
     user: JSON.parse(localStorage.getItem('sessionUser') || 'null'),
-    currentPage: 'overview',
+    currentTab: 'page1',
     selected: DEFAULT_DATA,
-    selectedRecord: null,
     history: [],
     historyPage: 1,
-    historyPageSize: 5,
+    historyPageSize: 6,
     historyTotal: 0
   };
+
+  const tabs = [
+    { id: 'page1', text: '分页1 用户描述与方案' },
+    { id: 'page2', text: '分页2 配置饼图与定投曲线' },
+    { id: 'page3', text: '分页3 收益对比分析' },
+    { id: 'page4', text: '分页4 投资建议报告' },
+    { id: 'page5', text: '分页5 历史记录' }
+  ];
 
   const el = (id) => document.getElementById(id);
   const authCard = el('authCard');
   const mainArea = el('mainArea');
+  function get(obj, path, fallback = null) { return path.reduce((a, k) => a && a[k] !== undefined ? a[k] : null, obj) ?? fallback; }
 
   function api(path, options = {}) {
     const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
     if (state.token) headers.Authorization = `Bearer ${state.token}`;
     return fetch(path, { ...options, headers });
-  }
-
-  function get(obj, path, fallback = null) {
-    return path.reduce((acc, k) => (acc && acc[k] !== undefined ? acc[k] : null), obj) ?? fallback;
   }
 
   function initChart(id, option) {
@@ -249,40 +166,27 @@
     echarts.init(dom).setOption(option);
   }
 
-  function renderMenu() {
-    const menu = el('menu');
-    menu.innerHTML = '';
-    PAGES.forEach((p) => {
+  function renderTabs() {
+    const t = el('tabList');
+    t.innerHTML = '';
+    tabs.forEach((x) => {
       const btn = document.createElement('button');
-      btn.textContent = p.label;
-      if (p.id === state.currentPage) btn.classList.add('active');
-      btn.onclick = () => switchPage(p.id);
-      menu.appendChild(btn);
+      btn.className = `tab-btn ${state.currentTab === x.id ? 'active' : ''}`;
+      btn.textContent = x.text;
+      btn.onclick = () => switchTab(x.id);
+      t.appendChild(btn);
     });
   }
 
-  function renderProfile() {
-    const p = state.selected?.user_profile || {};
-    const items = [
-      `年龄段：${get(p, ['basic', 'age_group'], '-')}`,
-      `可投资产：${get(p, ['basic', 'investable_assets'], '-')} ${get(p, ['basic', 'asset_currency'], '')}`,
-      `目标：${get(p, ['goal', 'specific_goal'], '-')}`,
-      `收益预期：${get(p, ['goal', 'expected_return'], '-')}`,
-      `风险等级：${get(p, ['risk_tolerance', 'risk_level'], '-')}`,
-      `偏好行业：${(get(p, ['preferences', 'preferred_sectors'], []) || []).join('、') || '-'}`
-    ];
-    el('profilePills').innerHTML = items.map(x => `<span class="pill">${x}</span>`).join('');
-  }
-
-  function switchPage(pageId) {
-    state.currentPage = pageId;
-    renderMenu();
-    el('view-overview').classList.toggle('hidden', pageId !== 'overview');
-    el('view-history').classList.toggle('hidden', pageId !== 'history');
-    el('view-module').classList.toggle('hidden', !pageId.startsWith('m'));
-    if (pageId === 'overview') renderOverview();
-    if (pageId === 'history') renderHistoryPage();
-    if (pageId.startsWith('m')) renderModule(pageId);
+  function switchTab(id) {
+    state.currentTab = id;
+    renderTabs();
+    tabs.forEach((x) => el(x.id).classList.toggle('hidden', x.id !== id));
+    renderPage1();
+    renderPage2();
+    renderPage3();
+    renderPage4();
+    renderPage5();
   }
 
   async function auth(path) {
@@ -290,17 +194,16 @@
     const password = el('password').value;
     const resp = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
     const data = await resp.json();
-    if (!resp.ok) { el('authMsg').textContent = data.error || '操作失败'; return; }
+    if (!resp.ok) { el('authMsg').textContent = data.error || '失败'; return; }
     if (path.endsWith('/login')) {
-      state.token = data.token;
-      state.user = data.user;
+      state.token = data.token; state.user = data.user;
       localStorage.setItem('sessionToken', state.token);
       localStorage.setItem('sessionUser', JSON.stringify(state.user));
       setAuthView();
-      return;
+    } else {
+      el('authMsg').style.color = '#166534';
+      el('authMsg').textContent = data.message;
     }
-    el('authMsg').style.color = '#2c9f58';
-    el('authMsg').textContent = data.message;
   }
 
   async function runWorkflow() {
@@ -310,9 +213,7 @@
     const data = await resp.json();
     if (!resp.ok) return alert(data.error || '调用失败');
     state.selected = data.data || DEFAULT_DATA;
-    state.selectedRecord = null;
-    renderProfile();
-    renderOverview();
+    renderAllPages();
     loadHistory(1);
   }
 
@@ -326,193 +227,168 @@
     }
     state.history = data.items || [];
     state.historyTotal = data.total || 0;
-    if (!state.selectedRecord && state.history.length) loadRecord(state.history[0].id, false);
-    if (state.currentPage === 'history') renderHistoryPage();
+    if (state.currentTab === 'page5') renderPage5();
   }
 
-  async function loadRecord(id, jumpModule) {
+  async function replayRecord(id) {
     const resp = await api(`/api/history/${id}`);
     const data = await resp.json();
-    if (!resp.ok) return alert(data.error || '详情加载失败');
-    state.selectedRecord = data;
+    if (!resp.ok) return alert(data.error || '加载失败');
     state.selected = data.response || DEFAULT_DATA;
-    renderProfile();
-    if (jumpModule) switchPage('m1');
-    if (state.currentPage === 'history') renderHistoryPage();
+    switchTab('page1');
   }
 
-  function renderOverview() {
-    const data = state.selected || DEFAULT_DATA;
-    const rates = get(data, ['investment_calculation', '不同情景分析'], []);
-    const riskMap = { 保守型: 20, 稳健型: 45, 平衡型: 60, 激进型: 82 };
-    const riskLevel = get(data, ['risk_metrics', '风险等级'], get(data, ['user_profile', 'risk_tolerance', 'risk_level'], '平衡型'));
-    const riskValue = riskMap[riskLevel] || 60;
-
-    el('view-overview').innerHTML = `
-      <h3>总览图表（替代 JSON 展示）</h3>
-      <div class="row">
-        <div>
-          <label>Coze Workflow Token</label>
-          <input id="workflowToken" type="password" placeholder="Bearer token（不含 Bearer 前缀）" />
-        </div>
-        <div>
-          <label>用户画像输入</label>
-          <textarea id="userInput">我今年25岁职场新人，年收入14万，每年8万可投资，偏好AI与教育，风险激进。</textarea>
-        </div>
-      </div>
-      <button id="runBtn" class="primary" style="margin-top:10px;">发送到工作流并更新图表</button>
-
-      <div class="kpi-grid" style="margin-top:12px;">
-        <div class="kpi"><div>预期收益率（5年）</div><b>${get(data, ['investment_calculation', '复利计算', '总收益率'], 0)}%</b><span>模型计算</span></div>
-        <div class="kpi"><div>可投资产</div><b>${get(data, ['user_profile', 'basic', 'investable_assets'], '-')}</b><span>CNY</span></div>
-        <div class="kpi"><div>风险等级</div><b>${riskLevel}</b><span>评估结果</span></div>
-        <div class="kpi"><div>建议模块数</div><b>6</b><span>闭环</span></div>
-      </div>
-
-      <div class="row" style="margin-top:12px;">
-        <div class="panel"><h4>情景收益对比</h4><div id="overviewScenario" class="chart-sm"></div></div>
-        <div class="panel"><h4>风险承受仪表盘</h4><div id="overviewRiskGauge" class="chart-sm"></div></div>
-      </div>
-
-      <div class="row" style="margin-top:12px;">
-        <div class="panel"><h4>资产大类配置</h4><div id="overviewAssetPie" class="chart"></div></div>
-        <div class="panel"><h4>模块跳转</h4>
-          <div class="row-3">
-            <button class="secondary" data-jump="m1">市场情报</button>
-            <button class="secondary" data-jump="m2">风险计算</button>
-            <button class="secondary" data-jump="m3">资产配置</button>
-            <button class="secondary" data-jump="m4">投资计算</button>
-            <button class="secondary" data-jump="m5">风险评估</button>
-            <button class="secondary" data-jump="m6">投资策略</button>
+  function renderPage1() {
+    const d = state.selected;
+    const p = d.user_profile || {};
+    const asset = d.asset_allocation_model || {};
+    const calc = d.investment_calculation || {};
+    el('page1').innerHTML = `
+      <div class="card" style="margin:0 0 12px 0;">
+        <label>用户描述</label>
+        <div class="row">
+          <textarea id="userInput">我今年25岁职场新人，年收入14万，每年8万可用于投资，投资期限3年以上，目标资产增值，期望年化收益>10%，可接受回撤>20%，偏好教育和AI。</textarea>
+          <div>
+            <label>Bearer Token</label>
+            <input id="workflowToken" type="password" placeholder="输入Token" />
+            <div class="row" style="margin-top:10px;">
+              <button id="runBtn" class="primary">生成投资方案</button>
+              <button id="loadSampleBtn" class="secondary">加载示例</button>
+            </div>
           </div>
         </div>
       </div>
+      <div class="row-3">
+        <div class="card">
+          <h3>用户画像</h3>
+          <div>
+            <span class="pill">${get(p,['basic','age_group'],'-')}</span>
+            <span class="pill">年收入 ${get(p,['basic','income_range'],'-')}</span>
+            <span class="pill">可投资 ¥${get(p,['basic','investable_assets'],'-')}</span>
+            <span class="pill">风险 ${get(p,['risk_tolerance','risk_level'],'-')}</span>
+            <span class="pill">偏好 ${(get(p,['preferences','preferred_sectors'],[])||[]).join('、')}</span>
+          </div>
+          <div class="value-row"><span>投资目标</span><b>${get(p,['goal','specific_goal'],'-')}</b></div>
+          <div class="value-row"><span>预期收益</span><b>${get(p,['goal','expected_return'],'-')}</b></div>
+          <div class="value-row"><span>期限</span><b>${get(p,['goal','investment_horizon'],'-')}</b></div>
+        </div>
+        <div class="card">
+          <h3>核心配置</h3>
+          <div class="value-row"><span>股票类</span><b>${Math.round((get(asset,['配置比例','股票类'],0))*100)}%</b></div>
+          <div class="value-row"><span>债券类</span><b>${Math.round((get(asset,['配置比例','债券类'],0))*100)}%</b></div>
+          <div class="value-row"><span>现金/另类</span><b>${Math.round((get(asset,['配置比例','现金及等价物'],0)*100 + get(asset,['配置比例','另类投资'],0)*100)}%</b></div>
+          <div class="value-row"><span>预期年化</span><b>${asset['预期年化收益'] || '-'}</b></div>
+          <div class="value-row"><span>最大回撤</span><b>${asset['预期最大回撤'] || '-'}</b></div>
+        </div>
+        <div class="card">
+          <h3>收益模拟</h3>
+          <div class="value-row"><span>5年复利终值</span><b>¥${get(calc,['复利计算','期末价值'],'-')}</b></div>
+          <div class="value-row"><span>复利总收益率</span><b>${get(calc,['复利计算','总收益率'],'-')}%</b></div>
+          <div class="value-row"><span>5年定投终值</span><b>¥${get(calc,['定投计算','期末价值'],'-')}</b></div>
+          <div class="value-row"><span>定投收益率</span><b>${get(calc,['定投计算','总收益率'],'-')}%</b></div>
+        </div>
+      </div>
     `;
-
     el('runBtn').onclick = runWorkflow;
-    el('view-overview').querySelectorAll('[data-jump]').forEach((btn) => btn.onclick = () => switchPage(btn.dataset.jump));
+    el('loadSampleBtn').onclick = () => { state.selected = DEFAULT_DATA; renderAllPages(); };
+  }
 
-    initChart('overviewScenario', {
-      tooltip: { trigger: 'axis' },
-      xAxis: { type: 'category', data: rates.map(i => i.情景 || '-') },
-      yAxis: { type: 'value', axisLabel: { formatter: '{value}%' } },
-      series: [{ type: 'bar', data: rates.map(i => i.总收益率 || 0), itemStyle: { color: '#4f8ceb' } }]
-    });
-
-    initChart('overviewRiskGauge', {
-      series: [{
-        type: 'gauge',
-        min: 0, max: 100,
-        axisLine: { lineStyle: { width: 16, color: [[0.4, '#77d389'], [0.7, '#f6c556'], [1, '#ea6b6b']] } },
-        detail: { formatter: `{value}\n${riskLevel}`, color: '#2d4e95' },
-        data: [{ value: riskValue }]
-      }]
-    });
-
-    const pie = get(data, ['asset_allocation_model', '配置比例'], {});
-    initChart('overviewAssetPie', {
+  function renderPage2() {
+    const d = state.selected;
+    el('page2').innerHTML = `
+      <div class="row">
+        <div class="card"><h3>资产配置饼图</h3><div id="assetPie" class="chart"></div></div>
+        <div class="card"><h3>定投收益曲线</h3><div id="dcaLine" class="chart"></div></div>
+      </div>
+    `;
+    const details = get(d, ['asset_allocation_model', '详细配置'], {});
+    initChart('assetPie', {
       tooltip: { trigger: 'item' },
-      series: [{ type: 'pie', radius: ['35%', '70%'], data: Object.keys(pie).map(k => ({ name: k, value: Math.round((pie[k] || 0) * 100) })) }]
+      series: [{ type: 'pie', radius: ['40%', '70%'], data: Object.keys(details).map(k => ({ name: k, value: details[k] })) }]
+    });
+    const line = get(d, ['investment_calculation', '定投收益曲线'], []);
+    initChart('dcaLine', {
+      tooltip: { trigger: 'axis' },
+      legend: { data: ['累计投入', '累计价值', '累计收益'] },
+      xAxis: { type: 'category', data: line.map(i => i.月份) },
+      yAxis: { type: 'value' },
+      series: [
+        { type: 'line', name: '累计投入', data: line.map(i => i.累计投入), smooth: true },
+        { type: 'line', name: '累计价值', data: line.map(i => i.累计价值), smooth: true },
+        { type: 'line', name: '累计收益', data: line.map(i => i.累计收益), smooth: true }
+      ]
     });
   }
 
-  function renderHistoryPage() {
-    const pages = Math.max(Math.ceil(state.historyTotal / state.historyPageSize), 1);
-    const list = state.history;
-    el('view-history').innerHTML = `
-      <h3>历史趋势分页（图表化）</h3>
+  function renderPage3() {
+    const d = state.selected;
+    el('page3').innerHTML = `
+      <div class="row-3">
+        <div class="card"><h3>情景收益对比</h3><div id="sceneBar" class="chart-sm"></div></div>
+        <div class="card"><h3>各资产预期收益</h3><div id="assetReturnBar" class="chart-sm"></div></div>
+        <div class="card"><h3>不同持有期收益</h3><div id="holdingLine" class="chart-sm"></div></div>
+      </div>
+    `;
+    const scene = get(d, ['investment_calculation', '不同情景分析'], []);
+    initChart('sceneBar', {
+      xAxis: { type: 'category', data: scene.map(i => i.情景) },
+      yAxis: { type: 'value', name: '总收益率%' },
+      series: [{ type: 'bar', data: scene.map(i => i.总收益率) }]
+    });
+    const ar = get(d, ['investment_calculation', '各资产预期收益'], {});
+    const names = Object.keys(ar); const vals = names.map(k => get(ar,[k,'预期年化收益'],0));
+    initChart('assetReturnBar', { xAxis: { type:'category', data:names, axisLabel:{ rotate: 28 } }, yAxis:{ type:'value', name:'年化%' }, series:[{ type:'bar', data: vals }] });
+    const hp = get(d, ['investment_calculation', '不同持有期限收益'], []);
+    initChart('holdingLine', { xAxis: { type:'category', data: hp.map(i => i.持有年限) }, yAxis: { type:'value', name:'总收益率%' }, series:[{ type:'line', data: hp.map(i => i.总收益率), smooth:true }] });
+  }
+
+  function renderPage4() {
+    const report = state.selected.investment_advice || '暂无建议报告';
+    el('page4').innerHTML = `<h3>投资建议报告</h3><div class="report">${report}</div>`;
+  }
+
+  function renderPage5() {
+    const totalPages = Math.max(Math.ceil(state.historyTotal / state.historyPageSize), 1);
+    el('page5').innerHTML = `
+      <h3>历史记录</h3>
       <div class="row">
-        <div class="panel">
-          <h4>当前分页命中记录</h4>
-          <div id="historyBar" class="chart"></div>
-          <div style="margin-top:8px;display:flex;gap:8px;">
+        <div class="card"><h4>分页记录输入长度图</h4><div id="historyChart" class="chart"></div></div>
+        <div class="card">
+          <h4>历史列表</h4>
+          <div id="historyList"></div>
+          <div style="display:flex;gap:8px;margin-top:8px;align-items:center;">
             <button id="prevHistory" class="secondary">上一页</button>
             <button id="nextHistory" class="secondary">下一页</button>
-            <span style="line-height:38px;">第 ${state.historyPage}/${pages} 页，共 ${state.historyTotal} 条</span>
+            <span class="mini">第 ${state.historyPage}/${totalPages} 页，共 ${state.historyTotal} 条</span>
           </div>
         </div>
-        <div class="panel">
-          <h4>分页结构分布</h4>
-          <div id="historyPagePie" class="chart"></div>
-        </div>
-      </div>
-      <div class="panel">
-        <h4>历史复现入口（点击下方时间点）</h4>
-        <div class="timeline" id="historyTimeline"></div>
       </div>
     `;
-
-    const labels = list.map(i => `#${i.id}`);
-    const values = list.map(i => (i.user_input || '').length || 1);
-
-    initChart('historyBar', {
-      tooltip: { trigger: 'axis' },
-      xAxis: { type: 'category', data: labels },
-      yAxis: { type: 'value', name: '输入长度' },
-      series: [{ type: 'bar', data: values, itemStyle: { color: '#5f8fff' } }]
+    initChart('historyChart', {
+      xAxis: { type:'category', data: state.history.map(i => `#${i.id}`) },
+      yAxis: { type:'value', name:'输入字数' },
+      series: [{ type:'bar', data: state.history.map(i => (i.user_input || '').length) }]
     });
-
-    initChart('historyPagePie', {
-      series: [{
-        type: 'pie',
-        radius: ['45%', '72%'],
-        data: [
-          { name: '当前页记录数', value: list.length },
-          { name: '其余记录数', value: Math.max(state.historyTotal - list.length, 0) }
-        ]
-      }]
+    const list = el('historyList');
+    list.innerHTML = '';
+    state.history.forEach((it) => {
+      const div = document.createElement('div');
+      div.className = 'history-item';
+      div.innerHTML = `<div><b>#${it.id}</b> ${new Date(it.created_at).toLocaleString()}</div><div class='mini'>${(it.user_input || '').slice(0, 80)}...</div>`;
+      const btn = document.createElement('button');
+      btn.className = 'secondary';
+      btn.style.marginTop = '6px';
+      btn.textContent = '复现该记录';
+      btn.onclick = () => replayRecord(it.id);
+      div.appendChild(btn);
+      list.appendChild(div);
     });
-
-    const timeline = el('historyTimeline');
-    timeline.innerHTML = list.map(i => `<div class="timeline-item"><b>${new Date(i.created_at).toLocaleString()}</b> · 记录 #${i.id} <button style="width:auto;margin-left:8px;" data-id="${i.id}">复现并进入模块1</button></div>`).join('');
-    timeline.querySelectorAll('button[data-id]').forEach((btn) => btn.onclick = () => loadRecord(Number(btn.dataset.id), true));
-
     el('prevHistory').onclick = () => { if (state.historyPage > 1) loadHistory(state.historyPage - 1); };
-    el('nextHistory').onclick = () => { if (state.historyPage < pages) loadHistory(state.historyPage + 1); };
+    el('nextHistory').onclick = () => { if (state.historyPage < totalPages) loadHistory(state.historyPage + 1); };
   }
 
-  function renderModule(pageId) {
-    const n = Number(pageId.slice(1));
-    const data = state.selected || DEFAULT_DATA;
-    const view = el('view-module');
-
-    if (n === 1) {
-      view.innerHTML = `<h3>模块1 市场情报</h3><div class="row"><div class="panel"><h4>情报来源分布</h4><div id="m1Source" class="chart"></div></div><div class="panel"><h4>市场情报摘要</h4><p>${data.market_intelligence_report || '暂无'}</p></div></div>`;
-      const items = get(data, ['market_realtime_data', '宏观经济'], []);
-      const srcCount = {};
-      items.forEach(i => { srcCount[i.来源 || '未知'] = (srcCount[i.来源 || '未知'] || 0) + 1; });
-      initChart('m1Source', { series: [{ type: 'pie', radius: '65%', data: Object.keys(srcCount).map(k => ({ name: k, value: srcCount[k] })) }] });
-    } else if (n === 2) {
-      view.innerHTML = `<h3>模块2 风险计算</h3><div class="row"><div class="panel"><h4>VaR 与收益质量</h4><div id="m2Risk" class="chart"></div></div><div class="panel"><h4>风险结论</h4><div class="kpi-grid"><div class="kpi"><div>风险等级</div><b>${get(data,['risk_metrics','风险等级'],'-')}</b><span>评估</span></div><div class="kpi"><div>夏普比率</div><b>${get(data,['risk_metrics','夏普比率'],'-')}</b><span>效率</span></div><div class="kpi"><div>信息比率</div><b>${get(data,['risk_metrics','信息比率'],'-')}</b><span>超额能力</span></div><div class="kpi"><div>年VaR95</div><b>${get(data,['risk_metrics','VaR_95','年度'],'-')}</b><span>风控</span></div></div></div></div>`;
-      initChart('m2Risk', {
-        xAxis: { type: 'category', data: ['单日VaR95', '年度VaR95', '夏普比率', '信息比率'] },
-        yAxis: { type: 'value' },
-        series: [{ type: 'bar', data: [Math.abs(get(data,['risk_metrics','VaR_95','单日'],0)), Math.abs(get(data,['risk_metrics','VaR_95','年度'],0)), get(data,['risk_metrics','夏普比率'],0), get(data,['risk_metrics','信息比率'],0)], itemStyle: { color: '#4f8ceb' } }]
-      });
-    } else if (n === 3) {
-      view.innerHTML = `<h3>模块3 资产配置</h3><div class="row"><div class="panel"><h4>资产配置环图</h4><div id="m3Pie" class="chart"></div></div><div class="panel"><h4>细分资产权重</h4><div id="m3Bar" class="chart"></div></div></div>`;
-      const d = get(data,['visualization_data','资产配置饼图','数据'], null);
-      initChart('m3Pie', { series: [{ type: 'pie', radius: ['35%','70%'], data: (d?.标签 || []).map((x,i) => ({ name:x, value:d.比例[i] })) }] });
-      initChart('m3Bar', { xAxis: { type:'category', data: d?.标签 || [] }, yAxis: { type:'value' }, series: [{ type:'bar', data: d?.比例 || [], itemStyle: { color:'#5a8fff' } }] });
-    } else if (n === 4) {
-      view.innerHTML = `<h3>模块4 投资计算</h3><div class="row"><div class="panel"><h4>定投曲线</h4><div id="m4Line" class="chart"></div></div><div class="panel"><h4>情景收益率</h4><div id="m4Scene" class="chart"></div></div></div>`;
-      const series = get(data,['visualization_data','定投收益曲线','数据','系列'], []);
-      const len = series[0]?.数据?.length || 0;
-      initChart('m4Line', { tooltip: { trigger:'axis' }, legend: { data: series.map(s=>s.名称) }, xAxis: { type:'category', data: Array.from({length:len},(_,i)=>i+1) }, yAxis: { type:'value' }, series: series.map(s=>({ type:'line', smooth:true, name:s.名称, data:s.数据 })) });
-      const scene = get(data,['investment_calculation','不同情景分析'], []);
-      initChart('m4Scene', { xAxis: { type:'category', data: scene.map(i=>i.情景) }, yAxis: { type:'value' }, series: [{ type:'bar', data: scene.map(i=>i.总收益率), itemStyle: { color:'#6e9fff' } }] });
-    } else if (n === 5) {
-      view.innerHTML = `<h3>模块5 风险评估</h3><div class="row"><div class="panel"><h4>风险评估文本</h4><p>${data.risk_assessment_report || '暂无'}</p></div><div class="panel"><h4>风险等级位置</h4><div id="m5Gauge" class="chart"></div></div></div>`;
-      const level = get(data,['risk_metrics','风险等级'], '平衡型');
-      const map = { 保守型: 25, 稳健型: 45, 平衡型: 60, 激进型: 82 };
-      initChart('m5Gauge', { series:[{ type:'gauge', min:0, max:100, detail:{ formatter: `{value}\n${level}` }, data:[{ value: map[level] || 60 }] }] });
-    } else {
-      view.innerHTML = `<h3>模块6 投资策略</h3><div class="row"><div class="panel"><h4>策略建议</h4><p>${data.investment_advice || '暂无'}</p></div><div class="panel"><h4>策略权重矩阵</h4><div id="m6Radar" class="chart"></div></div></div>`;
-      initChart('m6Radar', {
-        radar: { indicator: [{ name:'收益目标', max:100 },{ name:'风险承受', max:100 },{ name:'流动性', max:100 },{ name:'行业集中', max:100 },{ name:'执行稳定', max:100 }] },
-        series: [{ type:'radar', data:[{ value:[85, 80, 45, 72, 68], name:'策略评分' }] }]
-      });
-    }
+  function renderAllPages() {
+    renderPage1(); renderPage2(); renderPage3(); renderPage4(); renderPage5();
   }
 
   function setAuthView() {
@@ -521,15 +397,13 @@
     mainArea.classList.toggle('hidden', !ok);
     if (!ok) return;
     el('currentUser').textContent = state.user.username;
-    renderProfile();
-    renderMenu();
-    switchPage(state.currentPage);
+    renderTabs();
+    switchTab(state.currentTab);
     loadHistory();
   }
 
   function doLogout() {
-    state.token = '';
-    state.user = null;
+    state.token = ''; state.user = null;
     localStorage.removeItem('sessionToken');
     localStorage.removeItem('sessionUser');
     setAuthView();
@@ -537,7 +411,7 @@
 
   el('loginBtn').onclick = () => auth('/api/auth/login');
   el('registerBtn').onclick = () => auth('/api/auth/register');
-  el('logoutBtn').onclick = async () => { await api('/api/auth/logout', { method:'POST' }); doLogout(); };
+  el('logoutBtn').onclick = async () => { await api('/api/auth/logout', { method: 'POST' }); doLogout(); };
 
   setAuthView();
 })();
