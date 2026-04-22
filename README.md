@@ -90,6 +90,7 @@ SOURCE D:/your-project-path/IntelligentInvestmentDecisionSystem/db/init_mysql57.
 3. 通过左侧五个分页查看：用户方案、配置曲线、收益对比、投资建议、历史记录。
 4. 在历史记录页可翻页并点击“复现该记录”。
 4. 如果页面空白，优先检查是否可访问 `https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js`。新版前端已增加 CDN 失败兜底提示，不会再整页空白。
+5. 新版已将页面逻辑拆分到 `app.js`，避免内联脚本受策略限制导致不执行。
 
 ---
 
