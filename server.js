@@ -135,15 +135,49 @@ app.post('/api/auth/logout', authMiddleware, (req, res) => {
   res.json({ message: '已退出登录' });
 });
 
+});
+
+app.post('/api/auth/logout', authMiddleware, (req, res) => {
+  sessionStore.delete(req.sessionToken);
+  res.json({ message: '已退出登录' });
+});
+
 app.get('/api/history', authMiddleware, async (req, res) => {
   const page = Math.max(Number(req.query.page || 1), 1);
   const pageSize = Math.min(Math.max(Number(req.query.pageSize || 5), 1), 20);
   const offset = (page - 1) * pageSize;
   const [[{ total }]] = await pool.query('SELECT COUNT(*) AS total FROM workflow_records WHERE user_id = ?', [req.user.id]);
-  const [rows] = await pool.query('SELECT id, user_input, created_at, response_json FROM workflow_records WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?', [req.user.id, pageSize, offset]);
+  const [rows] = await pool.query('SELECT id, user_input, workflow_url, token_mask, created_at FROM workflow_records WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?', [req.user.id, pageSize, offset]);
   res.json({
     total, page, pageSize,
-    items: rows.map((row) => ({ id: row.id, user_input: row.user_input, created_at: row.created_at, response: safeJsonParse(row.response_json) }))
+    items: rows.map((row) => ({
+      id: row.id,
+      user_input: row.user_input,
+      created_at: row.created_at,
+      workflow_url: row.workflow_url,
+      token_mask: row.token_mask
+    }))
+  });
+});
+
+app.get('/api/history/:id', authMiddleware, async (req, res) => {
+  const id = Number(req.params.id);
+  if (!id) return res.status(400).json({ error: '无效的记录ID' });
+
+  const [rows] = await pool.query(
+    'SELECT id, user_input, workflow_url, token_mask, response_json, created_at FROM workflow_records WHERE id = ? AND user_id = ? LIMIT 1',
+    [id, req.user.id]
+  );
+  if (!rows.length) return res.status(404).json({ error: '记录不存在' });
+
+  const row = rows[0];
+  return res.json({
+    id: row.id,
+    user_input: row.user_input,
+    workflow_url: row.workflow_url,
+    token_mask: row.token_mask,
+    created_at: row.created_at,
+    response: safeJsonParse(row.response_json)
   });
 });
 
