@@ -1,815 +1,322 @@
-<!DOCTYPE html>
-<html lang="zh">
+<!doctype html>
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>智能投资顾问 · 资产配置方案</title>
-    <!-- 使用 ECharts 5 & Font Awesome 图标库，现代柔和风格 -->
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Segoe UI', 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #f4f7fc;
-            color: #1e293b;
-            padding: 24px 16px;
-            line-height: 1.5;
-        }
-
-        .container {
-            max-width: 1440px;
-            margin: 0 auto;
-        }
-
-        /* 头部 */
-        .header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .header h1 {
-            font-size: 1.9rem;
-            font-weight: 600;
-            background: linear-gradient(145deg, #0f2b4d, #1e4a6f);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: -0.01em;
-        }
-
-        .header i {
-            font-size: 2.2rem;
-            color: #2c5f8a;
-        }
-
-        /* 输入卡片 */
-        .input-card {
-            background: white;
-            border-radius: 28px;
-            padding: 24px 28px;
-            box-shadow: 0 20px 35px -8px rgba(0, 32, 64, 0.12);
-            margin-bottom: 32px;
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(2px);
-        }
-
-        .input-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            align-items: flex-end;
-        }
-
-        .input-field {
-            flex: 1 1 260px;
-        }
-
-        .input-field label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.02em;
-            color: #5e6f8d;
-            margin-bottom: 6px;
-        }
-
-        .input-field input, .input-field textarea {
-            width: 100%;
-            padding: 14px 18px;
-            border: 1px solid #dde3ed;
-            border-radius: 24px;
-            font-size: 0.95rem;
-            transition: all 0.2s;
-            background: #f9fcff;
-            font-family: inherit;
-        }
-
-        .input-field input:focus, .input-field textarea:focus {
-            outline: none;
-            border-color: #3a7ca5;
-            box-shadow: 0 0 0 4px rgba(58,124,165,0.15);
-            background: white;
-        }
-
-        .input-field textarea {
-            min-height: 90px;
-            resize: vertical;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            background: #1e4a6f;
-            border: none;
-            color: white;
-            font-weight: 600;
-            padding: 14px 34px;
-            border-radius: 40px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 8px 16px -6px #1e4a6f70;
-            border: 1px solid #ffffff30;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .btn i {
-            font-size: 1.1rem;
-        }
-
-        .btn:hover {
-            background: #143b57;
-            transform: translateY(-2px);
-            box-shadow: 0 15px 20px -8px #0f2b4d;
-        }
-
-        .btn-outline {
-            background: transparent;
-            box-shadow: none;
-            color: #1e4a6f;
-            border: 1px solid #b4c8db;
-        }
-
-        .btn-outline:hover {
-            background: #e6f0fa;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .loading {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: #edf2f9;
-            padding: 8px 20px;
-            border-radius: 40px;
-            color: #2b4f6e;
-            font-weight: 500;
-        }
-
-        .loading i {
-            animation: spin 1s infinite linear;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* 网格卡片布局 */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 22px;
-            margin-top: 20px;
-        }
-
-        .card {
-            background: white;
-            border-radius: 28px;
-            padding: 22px 24px;
-            box-shadow: 0 12px 30px -8px rgba(18, 45, 74, 0.08);
-            border: 1px solid rgba(0,0,0,0.02);
-            transition: all 0.15s;
-            backdrop-filter: blur(2px);
-            background: rgba(255,255,255,0.85);
-        }
-
-        .card:hover {
-            box-shadow: 0 24px 44px -12px rgba(18, 67, 112, 0.18);
-        }
-
-        .card-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 18px;
-            border-bottom: 1px dashed #cbd5e1;
-            padding-bottom: 12px;
-        }
-
-        .card-header i {
-            font-size: 1.6rem;
-            color: #3679b5;
-            background: #e4eff9;
-            padding: 10px;
-            border-radius: 18px;
-        }
-
-        .card-header h3 {
-            font-weight: 600;
-            font-size: 1.3rem;
-            color: #0b2a44;
-        }
-
-        /* 跨度辅助 */
-        .col-span-3 { grid-column: span 3; }
-        .col-span-4 { grid-column: span 4; }
-        .col-span-5 { grid-column: span 5; }
-        .col-span-6 { grid-column: span 6; }
-        .col-span-7 { grid-column: span 7; }
-        .col-span-8 { grid-column: span 8; }
-        .col-span-9 { grid-column: span 9; }
-        .col-span-12 { grid-column: span 12; }
-
-        @media (max-width: 900px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-            .col-span-3, .col-span-4, .col-span-5, .col-span-6, .col-span-7, .col-span-8, .col-span-9, .col-span-12 {
-                grid-column: span 1;
-            }
-        }
-
-        /* 用户画像小标签 */
-        .profile-tag {
-            display: inline-block;
-            background: #e7f1fa;
-            border-radius: 40px;
-            padding: 6px 16px;
-            font-size: 0.9rem;
-            margin: 4px 6px 4px 0;
-            color: #1f4e7a;
-        }
-
-        .key-metric {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            border-bottom: 1px solid #e9eef3;
-            padding: 12px 0;
-        }
-
-        .metric-label {
-            color: #4a607a;
-            font-weight: 500;
-        }
-
-        .metric-value {
-            font-weight: 700;
-            font-size: 1.2rem;
-            color: #1a3f60;
-        }
-
-        .advice-text {
-            background: #f1f7fd;
-            border-radius: 22px;
-            padding: 18px 22px;
-            white-space: pre-wrap;
-            font-size: 0.95rem;
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid #c7ddec;
-        }
-
-        .table-mini {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-        }
-
-        .table-mini td {
-            padding: 8px 4px;
-            border-bottom: 1px solid #ecf1f7;
-        }
-
-        .table-mini tr:last-child td {
-            border: none;
-        }
-
-        .badge {
-            background: #d1e3f5;
-            border-radius: 30px;
-            padding: 2px 10px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #164863;
-        }
-
-        .chart-container {
-            width: 100%;
-            height: 260px;
-            margin-top: 6px;
-        }
-
-        .small-chart {
-            height: 200px;
-        }
-
-        .footer-note {
-            margin-top: 40px;
-            text-align: center;
-            color: #6f85a0;
-            font-size: 0.9rem;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>智能投资决策系统</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <style>
+    body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; margin: 0; background: #f5f7fb; color: #0f172a; }
+    .app { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .card { background: #fff; border-radius: 14px; padding: 16px; box-shadow: 0 8px 20px rgba(15,23,42,.06); margin-bottom: 16px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .row-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+    label { display: block; font-size: 13px; color: #334155; margin-bottom: 6px; }
+    input, textarea, button { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; }
+    textarea { min-height: 90px; resize: vertical; }
+    button { cursor: pointer; background: #1d4ed8; border: none; color: #fff; font-weight: 600; }
+    button.secondary { background: #475569; }
+    button.inline { width: auto; padding: 8px 12px; }
+    .hidden { display: none; }
+    .steps { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+    .step-chip { background: #e2e8f0; color: #0f172a; padding: 6px 10px; border-radius: 999px; font-size: 12px; }
+    .step-chip.active { background: #2563eb; color: #fff; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background: #f8fafc; padding: 10px; border-radius: 8px; overflow: auto; white-space: pre-wrap; }
+    .history-item { border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; margin-bottom: 8px; }
+    .chart { width: 100%; height: 280px; }
+    @media (max-width: 900px) { .row, .row-3 { grid-template-columns: 1fr; } }
+  </style>
 </head>
 <body>
-<div class="container">
-    <!-- 头部 -->
-    <div class="header">
-        <i class="fas fa-chart-line"></i>
-        <h1>基于AI的多agent智能投资决策系统</h1>
-    </div>
+  <div class="app">
+    <h1>基于AI的多 Agent 智能投资决策系统</h1>
 
-    <!-- 输入区 -->
-    <div class="input-card">
-        <div class="input-group">
-            <div class="input-field" style="flex:2;">
-                <label><i class="far fa-comment-dots" style="margin-right: 6px;"></i>用户描述</label>
-                <textarea id="userInput" placeholder="例如：我今年25岁职场新人，年收入14万，每年8万可投资，期限3年以上……">我今年25岁职场新人，企业员工，年收入14万，每年8万可用于投资，投资期限3年以上，具体目标资产增值，预期年化收益率追求高收益>10%，能接受的最大年度亏损>20%，有2年基金经验，收入稳定，偏好新能源、科技领域</textarea>
-            </div>
-            <div class="input-field">
-                <label><i class="fas fa-key"></i> Bearer Token</label>
-                <input type="password" id="tokenInput" placeholder="填写您的授权令牌" value="YOUR_TOKEN_HERE">
-            </div>
-            <div class="btn-group">
-                <button class="btn" id="fetchBtn"><i class="fas fa-play"></i> 生成投资方案</button>
-                <button class="btn-outline btn" id="sampleBtn"><i class="fas fa-eye"></i> 加载示例</button>
-            </div>
+    <div id="authCard" class="card">
+      <h3>登录 / 注册</h3>
+      <div class="row">
+        <div>
+          <label>用户名</label>
+          <input id="username" placeholder="例如 investor01" />
         </div>
-        <div id="loadingIndicator" class="loading" style="display: none; margin-top: 18px;"><i class="fas fa-spinner"></i> 正在调用AI工作流，请稍候...</div>
+        <div>
+          <label>密码</label>
+          <input id="password" type="password" placeholder="请输入密码" />
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <button id="loginBtn">登录</button>
+        <button id="registerBtn" class="secondary">注册</button>
+      </div>
+      <div id="authMsg" style="margin-top:8px;color:#b91c1c"></div>
     </div>
 
-    <!-- 仪表盘区域：动态渲染 -->
-    <div id="dashboard" class="dashboard-grid" style="min-height: 400px;">
-        <!-- 内容将通过JS动态填充 -->
+    <div id="mainArea" class="hidden">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+          <div>当前用户：<b id="currentUser"></b></div>
+          <button id="logoutBtn" class="inline secondary">退出</button>
+        </div>
+        <div class="row" style="margin-top:10px;">
+          <div>
+            <label>Coze Workflow Token</label>
+            <input id="workflowToken" type="password" placeholder="Bearer token (不含 Bearer 前缀)" />
+          </div>
+          <div>
+            <label>用户输入画像文本</label>
+            <textarea id="userInput">我今年25岁职场新人，年收入14万，每年8万可投资，偏好AI与教育，风险激进。</textarea>
+          </div>
+        </div>
+        <button id="runBtn" style="margin-top:10px;">发送到工作流并保存结果</button>
+      </div>
+
+      <div class="card">
+        <h3>历史记录（MySQL 5.7）</h3>
+        <div id="historyList"></div>
+        <div style="display:flex; gap:8px; margin-top:8px;">
+          <button id="prevHistory" class="inline secondary">上一页</button>
+          <button id="nextHistory" class="inline secondary">下一页</button>
+          <span id="historyPageInfo" style="line-height:32px;"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>流程分页展示</h3>
+        <div class="steps" id="stepChips"></div>
+        <div style="display:flex; gap:8px; margin-bottom:10px;">
+          <button id="prevStep" class="inline secondary">上一步</button>
+          <button id="nextStep" class="inline secondary">下一步</button>
+          <span id="stepLabel" style="line-height:32px;"></span>
+        </div>
+        <div id="stepContent"></div>
+      </div>
     </div>
-    <div class="footer-note">
-        <i class="far fa-clock"></i> 数据基于Coze工作流实时生成 · 图表使用 ECharts 渲染
-    </div>
-</div>
+  </div>
 
 <script>
-    (function() {
-        // DOM 元素
-        const dashboardEl = document.getElementById('dashboard');
-        const userInput = document.getElementById('userInput');
-        const tokenInput = document.getElementById('tokenInput');
-        const fetchBtn = document.getElementById('fetchBtn');
-        const sampleBtn = document.getElementById('sampleBtn');
-        const loadingEl = document.getElementById('loadingIndicator');
+(() => {
+  const state = {
+    token: localStorage.getItem('sessionToken') || '',
+    user: JSON.parse(localStorage.getItem('sessionUser') || 'null'),
+    selected: null,
+    stepIndex: 0,
+    historyPage: 1,
+    historyPageSize: 5,
+    historyTotal: 0,
+    history: []
+  };
 
-        // 示例数据（即题目中返回的完整结构，截取关键部分用于演示）
-        const SAMPLE_RESPONSE = {
-  "user_input": "我今年25岁职场新人，企业员工，年收入14万，每年8万可用于投资，投资期限3年以上...",
-  "conversation_history": [],
-  "user_profile": {
-    "basic": { "age_group": "25-35", "income_range": "10-30万", "investable_assets": 80000, "asset_currency": "CNY" },
-    "goal": { "investment_horizon": "长期（3年以上）", "specific_goal": "资产增值", "expected_return": "追求高收益>10%" },
-    "risk_tolerance": { "max_loss_acceptance": ">20%", "investment_experience": "少量经验", "income_stability": "稳定", "risk_level": "激进型" },
-    "preferences": { "preferred_sectors": ["新能源", "科技"], "esg_preference": false, "liquidity_needs": "不需要随时支取" },
-    "is_info_complete": true
-  },
-  "market_intelligence_report": "## 📊 市场概览\n- **主要指数**：数据暂时无法获取\n- **市场情绪**：两市成交额、北向资金流向数据暂时无法获取\n- **宏观摘要**：据NIFD2025年一季度国内宏观经济报告...",
-  "market_realtime_data": { "宏观经济": [] },
-  "risk_metrics": { "估值分位数": {}, "波动率": {}, "风险等级": "激进型", "可接受最大回撤": ">20%", "VaR_95": {}, "夏普比率": 0.9, "信息比率": 0.4 },
-  "risk_assessment_report": "## 📋 风险评估摘要\n- **整体风险等级**：中\n- **与用户匹配度**：匹配\n- **关键风险点**：\n1. 新能源、科技行业技术迭代风险...",
-  "asset_allocation_model": {
-    "风险等级": "激进型",
-    "核心理念": "追求高收益，承受高风险",
-    "配置比例": { "股票类": 0.8, "债券类": 0.1, "现金及等价物": 0.05, "另类投资": 0.05 },
-    "预期年化收益": "12-15%",
-    "预期最大回撤": "20%",
-    "详细配置": { "沪深300指数基金": 0.304, "中证500指数基金": 0.248, "创业板ETF": 0.152, "科技ETF": 0.08, "新能源ETF": 0.016, "信用债基金": 0.1, "货币市场基金": 0.05, "黄金ETF": 0.05 },
-    "投资金额": { "沪深300指数基金": 24320, "中证500指数基金": 19840, "创业板ETF": 12160, "科技ETF": 6400, "新能源ETF": 1280, "信用债基金": 8000, "货币市场基金": 4000, "黄金ETF": 4000 },
-    "投资策略": {}
-  },
-  "investment_calculation": {
-    "复利计算": { "初始投资": 80000, "预期年化收益率": "10.0%", "持有年限": 5, "期末价值": 128840.8, "总收益": 48840.8, "总收益率": "61.05%" },
-    "定投计算": { "每月定投金额": 1333.33, "定投月数": 60, "总投资金额": 80000, "期末价值": 103249.43, "总收益": 23249.43, "总收益率": "29.06%" },
-    "定投收益曲线": [ { "月份": 1, "累计投入": 1333.33, "累计价值": 1333.33 }, { "月份": 60, "累计投入": 80000, "累计价值": 103249.43 } ], // 精简示例，完整使用下边visualization_data
-    "不同持有期限收益": [ { "持有年限": 1, "期末价值": 88000, "总收益": 8000, "总收益率": 10 }, { "持有年限": 5, "期末价值": 128840.8, "总收益": 48840.8, "总收益率": 61.05 } ]
-  },
-  "investment_advice": "## 📝 您的个性化投资建议报告\n\n**报告时间**：2025年6月18日\n**适用用户**：激进型投资者，追求长期资产增值\n\n### 一、核心配置建议\n\n#### 资产配置比例：股票类80%，债券10%，现金5%，黄金5%...",
-  "visualization_data": {
-    "资产配置饼图": {
-      "图表类型": "饼图", "标题": "资产配置比例",
-      "数据": { "标签": ["沪深300指数基金","中证500指数基金","创业板ETF","科技ETF","新能源ETF","信用债基金","货币市场基金","黄金ETF"], "比例": [30.4,24.8,15.2,8,1.6,10,5,5], "投资金额": [24320,19840,12160,6400,1280,8000,4000,4000] }
-    },
-    "定投收益曲线": {
-      "图表类型": "折线图", "标题": "定投收益曲线（60个月）",
-      "数据": {
-        "x轴": "月份", "y轴": "金额（元）",
-        "系列": [
-          { "名称": "累计投入", "数据": [1333.33,2666.67,4000,5333.33,6666.67,8000,9333.33,10666.67,12000,13333.33,14666.67,16000,17333.33,18666.67,20000,21333.33,22666.67,24000,25333.33,26666.67,28000,29333.33,30666.67,32000,33333.33,34666.67,36000,37333.33,38666.67,40000,41333.33,42666.67,44000,45333.33,46666.67,48000,49333.33,50666.67,52000,53333.33,54666.67,56000,57333.33,58666.67,60000,61333.33,62666.67,64000,65333.33,66666.67,68000,69333.33,70666.67,72000,73333.33,74666.67,76000,77333.33,78666.67,80000] },
-          { "名称": "累计价值", "数据": [1333.33,2677.78,4033.43,5400.37,6778.71,8168.53,9569.93,10983.02,12407.88,13844.61,15293.31,16754.09,18227.04,19712.27,21209.87,22719.95,24242.62,25777.97,27326.12,28887.17,30461.23,32048.41,33648.81,35262.55,36889.74,38530.49,40184.91,41853.12,43535.23,45231.35,46941.62,48666.13,50405.01,52158.39,53926.37,55709.09,57506.67,59319.23,61146.89,62989.78,64848.03,66721.76,68611.11,70516.2,72437.17,74374.14,76327.26,78296.66,80282.46,82284.82,84303.86,86339.72,88392.55,90462.49,92549.68,94654.26,96776.38,98916.18,101073.81,103249.43] },
-          { "名称": "累计收益", "数据": [0,11.11,33.43,67.04,112.04,168.53,236.6,316.35,407.88,511.27,626.65,754.09,893.71,1045.6,1209.87,1386.62,1575.95,1777.97,1992.79,2220.51,2461.23,2715.08,2982.15,3262.55,3556.41,3863.82,4184.91,4519.78,4868.56,5231.35,5608.28,5999.46,6405.01,6825.06,7259.71,7709.09,8173.34,8652.56,9146.89,9656.44,10181.36,10721.76,11277.77,11849.53,12437.17,13040.81,13660.6,14296.66,14949.13,15618.15,16303.86,17006.39,17725.89,18462.49,19216.34,19987.59,20776.38,21582.85,22407.15,23249.43] }
-        ]
-      }
-    },
-    "不同情景收益对比": {
-      "图表类型": "柱状图", "标题": "不同情景下5年预期收益对比",
-      "数据": { "x轴": "情景", "y轴": "总收益率（%）", "系列": [ { "名称": "总收益率", "数据": [27.63,61.05,101.14] } ] },
-      "详细数据": [ {"情景":"悲观","年化收益率":5,"5年后预计价值":102102.53,"总收益":22102.53,"总收益率":27.63}, {"情景":"基准","年化收益率":10,"5年后预计价值":128840.8,"总收益":48840.8,"总收益率":61.05}, {"情景":"乐观","年化收益率":15,"5年后预计价值":160908.57,"总收益":80908.57,"总收益率":101.14} ]
-    },
-    "各资产预期收益柱状图": {
-      "图表类型": "柱状图", "标题": "各资产预期年化收益率",
-      "数据": { "x轴": "资产类别", "y轴": "预期年化收益率（%）", "系列": [ { "名称": "预期年化收益率", "数据": [10,10,10,10,10,10,2.5,5] } ] }
-    },
-    "持有期限收益对比": {
-      "图表类型": "折线图", "标题": "不同持有期限的预期收益",
-      "数据": { "x轴": "持有年限", "y轴": "总收益率（%）", "系列": [ { "名称": "总收益率", "数据": [10,33.1,61.05,159.37] } ] },
-      "详细数据": [ {"持有年限":1,"期末价值":88000,"总收益":8000,"总收益率":10}, {"持有年限":3,"期末价值":106480,"总收益":26480,"总收益率":33.1}, {"持有年限":5,"期末价值":128840.8,"总收益":48840.8,"总收益率":61.05}, {"持有年限":10,"期末价值":207499.4,"总收益":127499.4,"总收益率":159.37} ]
+  const steps = [
+    '1️⃣ market_intelligence（市场情报）',
+    '2️⃣ risk_calculation（风险计算）',
+    '3️⃣ asset_allocation（资产配置）',
+    '4️⃣ investment_calculator（投资计算）',
+    '5️⃣ risk_assessment（风险评估）',
+    '6️⃣ investment_strategy（投资策略）'
+  ];
+
+  const el = (id) => document.getElementById(id);
+  const authCard = el('authCard');
+  const mainArea = el('mainArea');
+
+  function setAuthView() {
+    const loggedIn = Boolean(state.token && state.user);
+    authCard.classList.toggle('hidden', loggedIn);
+    mainArea.classList.toggle('hidden', !loggedIn);
+    if (loggedIn) {
+      el('currentUser').textContent = state.user.username;
+      loadHistory();
     }
   }
-};
 
-        // 清空仪表盘并渲染骨架/示例
-        function renderDashboard(data) {
-            if (!data) return;
-            console.log('渲染数据：', data); // 调试用
+  function api(path, options = {}) {
+    const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+    if (state.token) headers.Authorization = `Bearer ${state.token}`;
+    return fetch(path, { ...options, headers });
+  }
 
-            // 使用可选链和安全默认值
-            const profile = data.user_profile || {};
-            const basic = profile.basic || {};
-            const riskTol = profile.risk_tolerance || {};
-            const goal = profile.goal || {};
-            const pref = profile.preferences || {};
+  async function auth(path) {
+    const username = el('username').value.trim();
+    const password = el('password').value;
+    const msg = el('authMsg');
+    msg.textContent = '';
+    const resp = await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      msg.textContent = data.error || '操作失败';
+      return;
+    }
+    if (path.endsWith('/login')) {
+      state.token = data.token;
+      state.user = data.user;
+      localStorage.setItem('sessionToken', state.token);
+      localStorage.setItem('sessionUser', JSON.stringify(state.user));
+      setAuthView();
+    } else {
+      msg.style.color = '#166534';
+      msg.textContent = data.message;
+    }
+  }
 
-            let html = '';
+  async function runWorkflow() {
+    const workflow_token = el('workflowToken').value.trim();
+    const user_input = el('userInput').value.trim();
+    const resp = await api('/api/run', {
+      method: 'POST',
+      body: JSON.stringify({ workflow_token, user_input })
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      alert(data.error || '调用失败');
+      return;
+    }
+    state.selected = data.data;
+    state.stepIndex = 0;
+    renderStep();
+    await loadHistory(1);
+  }
 
-            // ---- 用户画像卡片 ----
-            html += `<div class="col-span-4 card">
-                <div class="card-header"><i class="fas fa-id-card"></i><h3>用户画像</h3></div>
-                <div>
-                    <span class="profile-tag">${basic.age_group || '年龄未知'}</span>
-                    <span class="profile-tag">年收入 ${basic.income_range || '未知'}</span>
-                    <span class="profile-tag">可投资 ¥${(basic.investable_assets || 0).toLocaleString()}</span>
-                </div>
-                <div style="margin-top:14px;">
-                    <span class="badge">风险偏好 ${riskTol.risk_level || '未知'}</span>
-                    <span class="badge">亏损容忍 ${riskTol.max_loss_acceptance || '未知'}</span>
-                    <span class="badge">偏好 ${(pref.preferred_sectors || []).join('、') || '无'}</span>
-                </div>
-                <div class="key-metric"><span class="metric-label">投资目标</span><span class="metric-value">${goal.specific_goal || '资产增值'}</span></div>
-                <div class="key-metric"><span class="metric-label">预期收益</span><span class="metric-value">${goal.expected_return || '>10%'}</span></div>
-                <div class="key-metric"><span class="metric-label">期限</span><span class="metric-value">${goal.investment_horizon || '3年以上'}</span></div>
-            </div>`;
+  async function loadHistory(page = state.historyPage) {
+    state.historyPage = page;
+    const resp = await api(`/api/history?page=${page}&pageSize=${state.historyPageSize}`);
+    const data = await resp.json();
+    if (!resp.ok) {
+      if (resp.status === 401) {
+        doLogout();
+        return;
+      }
+      alert(data.error || '加载历史失败');
+      return;
+    }
+    state.history = data.items;
+    state.historyTotal = data.total;
+    renderHistory();
+    if (!state.selected && state.history.length) {
+      state.selected = state.history[0].response;
+      renderStep();
+    }
+  }
 
-            // ---- 核心配置卡片 ----
-            const assetModel = data.asset_allocation_model || {};
-            const alloc = assetModel.配置比例 || {};
-            const stockAlloc = alloc.股票类 ?? 0;
-            const bondAlloc = alloc.债券类 ?? 0;
-            const cashAlloc = alloc.现金及等价物 ?? 0;
-            const altAlloc = alloc.另类投资 ?? 0;
+  function renderHistory() {
+    const list = el('historyList');
+    list.innerHTML = '';
+    state.history.forEach((item) => {
+      const div = document.createElement('div');
+      div.className = 'history-item';
+      div.innerHTML = `<b>#${item.id}</b> ${new Date(item.created_at).toLocaleString()}<br/><small>${item.user_input.slice(0, 120)}</small><br/>`;
+      const btn = document.createElement('button');
+      btn.className = 'inline';
+      btn.textContent = '查看该记录';
+      btn.onclick = () => {
+        state.selected = item.response;
+        state.stepIndex = 0;
+        renderStep();
+      };
+      div.appendChild(btn);
+      list.appendChild(div);
+    });
+    const totalPages = Math.max(Math.ceil(state.historyTotal / state.historyPageSize), 1);
+    el('historyPageInfo').textContent = `第 ${state.historyPage} / ${totalPages} 页，共 ${state.historyTotal} 条`;
+  }
 
-            html += `<div class="col-span-4 card">
-                <div class="card-header"><i class="fas fa-scale-balanced"></i><h3>核心配置</h3></div>
-                <div class="key-metric"><span class="metric-label">股票类</span><span class="metric-value">${(stockAlloc * 100).toFixed(0)}%</span></div>
-                <div class="key-metric"><span class="metric-label">债券类</span><span class="metric-value">${(bondAlloc * 100).toFixed(0)}%</span></div>
-                <div class="key-metric"><span class="metric-label">现金/另类</span><span class="metric-value">${((cashAlloc + altAlloc) * 100).toFixed(0)}%</span></div>
-                <div class="key-metric"><span class="metric-label">预期年化</span><span class="metric-value">${assetModel.预期年化收益 || '12-15%'}</span></div>
-                <div class="key-metric"><span class="metric-label">最大回撤</span><span class="metric-value">${assetModel.预期最大回撤 || '20%'}</span></div>
-            </div>`;
+  function get(obj, path, fallback = null) {
+    return path.reduce((acc, k) => acc && acc[k] !== undefined ? acc[k] : null, obj) ?? fallback;
+  }
 
-            // ---- 收益模拟卡片 ----
-            const calc = data.investment_calculation || {};
-            const compound = calc.复利计算 || {};
-            const dca = calc.定投计算 || {};
+  function renderChips() {
+    const chips = el('stepChips');
+    chips.innerHTML = '';
+    steps.forEach((s, i) => {
+      const span = document.createElement('span');
+      span.className = `step-chip ${state.stepIndex === i ? 'active' : ''}`;
+      span.textContent = s;
+      span.onclick = () => { state.stepIndex = i; renderStep(); };
+      chips.appendChild(span);
+    });
+  }
 
-            html += `<div class="col-span-4 card">
-                <div class="card-header"><i class="fas fa-calculator"></i><h3>收益模拟</h3></div>
-                <div class="key-metric"><span class="metric-label">5年复利终值</span><span class="metric-value">¥${(compound.期末价值 || 0).toLocaleString()}</span></div>
-                <div class="key-metric"><span class="metric-label">总收益率</span><span class="metric-value">${compound.总收益率 || '—'}</span></div>
-                <div class="key-metric"><span class="metric-label">定投5年终值</span><span class="metric-value">¥${(dca.期末价值 || 0).toLocaleString()}</span></div>
-                <div class="key-metric"><span class="metric-label">定投收益率</span><span class="metric-value">${dca.总收益率 || '—'}</span></div>
-            </div>`;
+  function renderChart(containerId, option) {
+    const node = document.getElementById(containerId);
+    if (!node) return;
+    const chart = echarts.init(node);
+    chart.setOption(option);
+  }
 
-            // ---- 图表部分：根据 visualization_data 生成容器 ----
-            const vis = data.visualization_data;
-            if (vis) {
-                if (vis['资产配置饼图']) {
-                    html += `<div class="col-span-6 card" id="chart-pie-container"><div class="card-header"><i class="fas fa-chart-pie"></i><h3>资产配置饼图</h3></div><div id="pieChart" class="chart-container"></div></div>`;
-                }
-                if (vis['定投收益曲线']) {
-                    html += `<div class="col-span-6 card" id="chart-dca-container"><div class="card-header"><i class="fas fa-chart-line"></i><h3>定投收益曲线</h3></div><div id="dcaChart" class="chart-container"></div></div>`;
-                }
-                if (vis['不同情景收益对比']) {
-                    html += `<div class="col-span-4 card" id="chart-scene-container"><div class="card-header"><i class="fas fa-chart-column"></i><h3>情景收益对比</h3></div><div id="sceneChart" class="chart-container small-chart"></div></div>`;
-                }
-                if (vis['各资产预期收益柱状图']) {
-                    html += `<div class="col-span-4 card" id="chart-asset-return-container"><div class="card-header"><i class="fas fa-chart-simple"></i><h3>各资产预期收益</h3></div><div id="assetReturnChart" class="chart-container small-chart"></div></div>`;
-                }
-                if (vis['持有期限收益对比']) {
-                    html += `<div class="col-span-4 card" id="chart-holding-container"><div class="card-header"><i class="fas fa-chart-gantt"></i><h3>不同持有期收益</h3></div><div id="holdingChart" class="chart-container small-chart"></div></div>`;
-                }
-            }
+  function renderStep() {
+    renderChips();
+    el('stepLabel').textContent = steps[state.stepIndex];
+    const data = state.selected || {};
+    const c = el('stepContent');
 
-            // 投资建议卡片
-            html += `<div class="col-span-12 card"><div class="card-header"><i class="fas fa-file-lines"></i><h3>投资建议报告</h3></div><div class="advice-text">${(data.investment_advice || '暂无投资建议').replace(/\n/g,'<br>')}</div></div>`;
-
-            dashboardEl.innerHTML = html;
-
-            // ---- 初始化所有图表 ----
-            if (!vis) return;
-
-            // 1. 资产配置饼图
-            if (vis['资产配置饼图'] && document.getElementById('pieChart')) {
-                const pieData = vis['资产配置饼图'].数据;
-                const pieOption = {
-                    tooltip: { trigger: 'item', formatter: '{b}: {c}%' },
-                    series: [{
-                        name: '资产配置',
-                        type: 'pie',
-                        radius: ['45%', '70%'],
-                        avoidLabelOverlap: true,
-                        itemStyle: { borderRadius: 8, borderColor: '#fff', borderWidth: 2 },
-                        label: { show: true, formatter: '{b}' },
-                        emphasis: { scale: true },
-                        data: pieData.标签.map((label, idx) => ({ name: label, value: pieData.比例[idx] }))
-                    }]
-                };
-                echarts.init(document.getElementById('pieChart')).setOption(pieOption);
-            }
-
-            // 2. 定投收益曲线
-            if (vis['定投收益曲线'] && document.getElementById('dcaChart')) {
-                const lineData = vis['定投收益曲线'].数据;
-                // 注意：数据中的系列数组顺序为累计投入、累计价值、累计收益
-                const series = lineData.系列.map(s => ({
-                    name: s.名称,
-                    type: 'line',
-                    data: s.数据,
-                    smooth: true,
-                    lineStyle: { width: 3 }
-                }));
-                const dcaOption = {
-                    tooltip: { trigger: 'axis' },
-                    legend: { data: lineData.系列.map(s => s.名称) },
-                    xAxis: { type: 'category', data: Array.from({ length: 60 }, (_, i) => i + 1), name: '月份' },
-                    yAxis: { type: 'value', name: '金额 (元)' },
-                    series: series
-                };
-                echarts.init(document.getElementById('dcaChart')).setOption(dcaOption);
-            }
-
-            // 3. 不同情景收益对比柱状图
-            if (vis['不同情景收益对比'] && document.getElementById('sceneChart')) {
-                const sceneData = vis['不同情景收益对比'].数据;
-                const sceneOption = {
-                    tooltip: { trigger: 'axis' },
-                    xAxis: { type: 'category', data: ['悲观', '基准', '乐观'] },
-                    yAxis: { type: 'value', name: '总收益率 %' },
-                    series: [{
-                        name: '总收益率',
-                        type: 'bar',
-                        data: sceneData.系列[0].数据,
-                        itemStyle: { color: '#3c7fb0' }
-                    }]
-                };
-                echarts.init(document.getElementById('sceneChart')).setOption(sceneOption);
-            }
-
-            // 4. 各资产预期收益柱状图
-            if (vis['各资产预期收益柱状图'] && document.getElementById('assetReturnChart')) {
-                const assetData = vis['各资产预期收益柱状图'].数据;
-                // 资产类别标签可以自定义，这里从详细数据中提取或使用预设
-                const labels = ['沪深300', '中证500', '创业板', '科技', '新能源', '信用债', '货币', '黄金'];
-                const assetOption = {
-                    tooltip: { trigger: 'axis' },
-                    xAxis: { type: 'category', data: labels, axisLabel: { rotate: 20 } },
-                    yAxis: { type: 'value', name: '收益率 %' },
-                    series: [{
-                        name: '预期年化收益率',
-                        type: 'bar',
-                        data: assetData.系列[0].数据,
-                        itemStyle: { color: '#57a777' }
-                    }]
-                };
-                echarts.init(document.getElementById('assetReturnChart')).setOption(assetOption);
-            }
-
-            // 5. 持有期限收益对比折线图
-            if (vis['持有期限收益对比'] && document.getElementById('holdingChart')) {
-                const holdData = vis['持有期限收益对比'].数据;
-                const holdOption = {
-                    tooltip: { trigger: 'axis' },
-                    xAxis: { type: 'category', data: [1, 3, 5, 10], name: '持有年限' },
-                    yAxis: { type: 'value', name: '总收益率 %' },
-                    series: [{
-                        name: '总收益率',
-                        type: 'line',
-                        data: holdData.系列[0].data,
-                        smooth: true,
-                        color: '#c45a32',
-                        lineStyle: { width: 3 }
-                    }]
-                };
-                echarts.init(document.getElementById('holdingChart')).setOption(holdOption);
-            }
-        }
-        // function renderDashboard(data) {
-        //     if (!data) return;
-        //     // 使用data填充所有卡片
-        //     let html = '';
-
-        //     // ---- 第一行：用户画像 & 核心指标 ----
-        //     const profile = data.user_profile || {};
-        //     const basic = profile.basic || {};
-        //     const riskTol = profile.risk_tolerance || {};
-        //     const goal = profile.goal || {};
-        //     const pref = profile.preferences || {};
-
-        //     html += `<div class="col-span-4 card">
-        //         <div class="card-header"><i class="fas fa-id-card"></i><h3>用户画像</h3></div>
-        //         <div><span class="profile-tag">${basic.age_group || '—'}</span><span class="profile-tag">年收入 ${basic.income_range || '—'}</span><span class="profile-tag">可投资 ¥${(basic.investable_assets || 0).toLocaleString()}</span></div>
-        //         <div style="margin-top:14px;"><span class="badge">风险偏好 ${riskTol.risk_level || '—'}</span> <span class="badge">亏损容忍 ${riskTol.max_loss_acceptance || '—'}</span> <span class="badge">偏好 ${(pref.preferred_sectors || []).join('、') || '无'}</span></div>
-        //         <div class="key-metric"><span class="metric-label">投资目标</span><span class="metric-value">${goal.specific_goal || '资产增值'}</span></div>
-        //         <div class="key-metric"><span class="metric-label">预期收益</span><span class="metric-value">${goal.expected_return || '>10%'}</span></div>
-        //         <div class="key-metric"><span class="metric-label">期限</span><span class="metric-value">${goal.investment_horizon || '3年以上'}</span></div>
-        //     </div>`;
-
-        //     // 资产配置摘要
-        //     const assetModel = data.asset_allocation_model || {};
-        //     const alloc = assetModel.配置比例 || {};
-        //     const investAmt = assetModel.投资金额 || {};
-        //     html += `<div class="col-span-4 card">
-        //         <div class="card-header"><i class="fas fa-scale-balanced"></i><h3>核心配置</h3></div>
-        //         <div class="key-metric"><span class="metric-label">股票类</span><span class="metric-value">${((alloc.股票类||0)*100).toFixed(0)}%</span></div>
-        //         <div class="key-metric"><span class="metric-label">债券类</span><span class="metric-value">${((alloc.债券类||0)*100).toFixed(0)}%</span></div>
-        //         <div class="key-metric"><span class="metric-label">现金/另类</span><span class="metric-value">${(( (alloc.现金及等价物||0)+(alloc.另类投资||0) )*100).toFixed(0)}%</span></div>
-        //         <div class="key-metric"><span class="metric-label">预期年化</span><span class="metric-value">${assetModel.预期年化收益 || '12-15%'}</span></div>
-        //         <div class="key-metric"><span class="metric-label">最大回撤</span><span class="metric-value">${assetModel.预期最大回撤 || '20%'}</span></div>
-        //     </div>`;
-
-        //     // 复利/定投关键数据
-        //     const calc = data.investment_calculation || {};
-        //     const compound = calc.复利计算 || {};
-        //     const dca = calc.定投计算 || {};
-        //     html += `<div class="col-span-4 card">
-        //         <div class="card-header"><i class="fas fa-calculator"></i><h3>收益模拟</h3></div>
-        //         <div class="key-metric"><span class="metric-label">5年复利终值</span><span class="metric-value">¥${(compound.期末价值 || 0).toLocaleString()}</span></div>
-        //         <div class="key-metric"><span class="metric-label">总收益率</span><span class="metric-value">${compound.总收益率 || '—'}</span></div>
-        //         <div class="key-metric"><span class="metric-label">定投5年终值</span><span class="metric-value">¥${(dca.期末价值 || 0).toLocaleString()}</span></div>
-        //         <div class="key-metric"><span class="metric-label">定投收益率</span><span class="metric-value">${dca.总收益率 || '—'}</span></div>
-        //     </div>`;
-
-        //     // 图表: 资产配置饼图 (col-span-6)
-        //     if (data.visualization_data && data.visualization_data['资产配置饼图']) {
-        //         html += `<div class="col-span-6 card" id="chart-pie-container"><div class="card-header"><i class="fas fa-chart-pie"></i><h3>资产配置饼图</h3></div><div id="pieChart" class="chart-container"></div></div>`;
-        //     }
-        //     // 定投曲线 (col-span-6)
-        //     if (data.visualization_data && data.visualization_data['定投收益曲线']) {
-        //         html += `<div class="col-span-6 card" id="chart-dca-container"><div class="card-header"><i class="fas fa-chart-line"></i><h3>定投收益曲线 (60个月)</h3></div><div id="dcaChart" class="chart-container"></div></div>`;
-        //     }
-        //     // 情景对比柱图 col-4
-        //     if (data.visualization_data && data.visualization_data['不同情景收益对比']) {
-        //         html += `<div class="col-span-4 card" id="chart-scene-container"><div class="card-header"><i class="fas fa-chart-column"></i><h3>情景收益对比</h3></div><div id="sceneChart" class="chart-container small-chart"></div></div>`;
-        //     }
-        //     // 各资产预期收益柱图 col-4
-        //     if (data.visualization_data && data.visualization_data['各资产预期收益柱状图']) {
-        //         html += `<div class="col-span-4 card" id="chart-asset-return-container"><div class="card-header"><i class="fas fa-chart-simple"></i><h3>各资产预期收益</h3></div><div id="assetReturnChart" class="chart-container small-chart"></div></div>`;
-        //     }
-        //     // 持有期限对比折线图 col-4
-        //     if (data.visualization_data && data.visualization_data['持有期限收益对比']) {
-        //         html += `<div class="col-span-4 card" id="chart-holding-container"><div class="card-header"><i class="fas fa-chart-gantt"></i><h3>不同持有期收益</h3></div><div id="holdingChart" class="chart-container small-chart"></div></div>`;
-        //     }
-
-        //     // 投资建议卡片 (col-span-12)
-        //     html += `<div class="col-span-12 card"><div class="card-header"><i class="fas fa-file-lines"></i><h3>投资建议报告</h3></div><div class="advice-text">${(data.investment_advice || '').replace(/\n/g,'<br>')}</div></div>`;
-
-        //     dashboardEl.innerHTML = html;
-
-        //     // 现在用 ECharts 渲染各个图表
-        //     if (data.visualization_data) {
-        //         const vd = data.visualization_data;
-        //         // 饼图
-        //         if (vd['资产配置饼图'] && document.getElementById('pieChart')) {
-        //             const pieData = vd['资产配置饼图'].数据;
-        //             const pieOption = {
-        //                 tooltip: { trigger: 'item', formatter: '{b}: {c}%' },
-        //                 series: [{
-        //                     name: '资产配置',
-        //                     type: 'pie',
-        //                     radius: ['45%', '70%'],
-        //                     avoidLabelOverlap: true,
-        //                     itemStyle: { borderRadius: 8, borderColor: '#fff', borderWidth: 2 },
-        //                     label: { show: true, formatter: '{b}' },
-        //                     emphasis: { scale: true },
-        //                     data: pieData.标签.map((label, idx) => ({ name: label, value: pieData.比例[idx] }))
-        //                 }]
-        //             };
-        //             echarts.init(document.getElementById('pieChart')).setOption(pieOption);
-        //         }
-        //         // 定投折线
-        //         if (vd['定投收益曲线'] && document.getElementById('dcaChart')) {
-        //             const lineData = vd['定投收益曲线'].数据;
-        //             const months = Array.from({ length: 60 }, (_, i) => i + 1);
-        //             const series = lineData.系列.map(s => ({ name: s.名称, type: 'line', data: s.数据, smooth: true }));
-        //             const lineOption = {
-        //                 tooltip: { trigger: 'axis' },
-        //                 legend: { data: lineData.系列.map(s => s.名称) },
-        //                 xAxis: { type: 'category', data: months, name: '月份' },
-        //                 yAxis: { type: 'value', name: '金额 (元)' },
-        //                 series: series
-        //             };
-        //             echarts.init(document.getElementById('dcaChart')).setOption(lineOption);
-        //         }
-        //         // 情景柱状图
-        //         if (vd['不同情景收益对比'] && document.getElementById('sceneChart')) {
-        //             const scene = vd['不同情景收益对比'].数据;
-        //             const sceneOption = {
-        //                 tooltip: { trigger: 'axis' },
-        //                 xAxis: { type: 'category', data: ['悲观', '基准', '乐观'] },
-        //                 yAxis: { type: 'value', name: '总收益率 %' },
-        //                 series: [{ name: '总收益率', type: 'bar', data: scene.系列[0].数据, itemStyle: { color: '#3c7fb0' } }]
-        //             };
-        //             echarts.init(document.getElementById('sceneChart')).setOption(sceneOption);
-        //         }
-        //         // 各资产预期收益柱图
-        //         if (vd['各资产预期收益柱状图'] && document.getElementById('assetReturnChart')) {
-        //             const asset = vd['各资产预期收益柱状图'].数据;
-        //             const labels = asset.x轴 === '资产类别' ? ['沪深300','中证500','创业板','科技','新能源','信用债','货币','黄金'] : asset.x轴;
-        //             const assetOption = {
-        //                 tooltip: { trigger: 'axis' },
-        //                 xAxis: { type: 'category', data: labels, axisLabel: { rotate: 20 } },
-        //                 yAxis: { type: 'value', name: '收益率 %' },
-        //                 series: [{ name: '预期年化收益率', type: 'bar', data: asset.系列[0].data, itemStyle: { color: '#57a777' } }]
-        //             };
-        //             echarts.init(document.getElementById('assetReturnChart')).setOption(assetOption);
-        //         }
-        //         // 持有期限折线
-        //         if (vd['持有期限收益对比'] && document.getElementById('holdingChart')) {
-        //             const hold = vd['持有期限收益对比'].数据;
-        //             const holdOption = {
-        //                 tooltip: { trigger: 'axis' },
-        //                 xAxis: { type: 'category', data: [1,3,5,10], name: '持有年限' },
-        //                 yAxis: { type: 'value', name: '总收益率 %' },
-        //                 series: [{ name: '总收益率', type: 'line', data: hold.系列[0].data, smooth: true, color: '#c45a32' }]
-        //             };
-        //             echarts.init(document.getElementById('holdingChart')).setOption(holdOption);
-        //         }
-        //     }
-        // }
-
-        // 调用API
-        async function fetchData(token, userText) {
-            const url = 'http://localhost:3000/api/run';
-            try {
-                const resp = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ user_input: userText })
-                });
-                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-                return await resp.json();
-            } catch (e) {
-                alert('请求失败：' + e.message + '。请检查网络、token或CORS，现在加载示例数据。');
-                return SAMPLE_RESPONSE; // 降级使用示例
-            }
-        }
-
-        // 事件绑定
-        fetchBtn.addEventListener('click', async () => {
-            const token = tokenInput.value.trim();
-            const text = userInput.value.trim();
-            if (!token || !text) {
-                alert('请填写Token和用户描述');
-                return;
-            }
-            loadingEl.style.display = 'flex';
-            dashboardEl.innerHTML = ''; // 清空
-            try {
-                const data = await fetchData(token, text);
-                renderDashboard(data);
-            } catch (e) {
-                alert('处理出错，使用示例数据');
-                renderDashboard(SAMPLE_RESPONSE);
-            } finally {
-                loadingEl.style.display = 'none';
-            }
+    if (state.stepIndex === 0) {
+      c.innerHTML = `
+        <h4>市场情报报告</h4>
+        <div class="mono">${(data.market_intelligence_report || '暂无').replace(/</g, '&lt;')}</div>
+        <h4>市场实时数据</h4>
+        <div class="mono">${JSON.stringify(data.market_realtime_data || {}, null, 2)}</div>`;
+    } else if (state.stepIndex === 1) {
+      c.innerHTML = `<h4>风险计算结果</h4><div class="mono">${JSON.stringify(data.risk_metrics || {}, null, 2)}</div>`;
+    } else if (state.stepIndex === 2) {
+      c.innerHTML = `
+        <h4>资产配置模型</h4><div class="mono">${JSON.stringify(data.asset_allocation_model || {}, null, 2)}</div>
+        <div id="pie" class="chart"></div>`;
+      const pie = get(data, ['visualization_data', '资产配置饼图', '数据']);
+      if (pie && pie.标签) {
+        renderChart('pie', {
+          tooltip: { trigger: 'item' },
+          series: [{ type: 'pie', radius: ['40%', '70%'], data: pie.标签.map((n, i) => ({ name: n, value: pie.比例[i] })) }]
         });
-
-        sampleBtn.addEventListener('click', () => {
-            renderDashboard(SAMPLE_RESPONSE);
+      }
+    } else if (state.stepIndex === 3) {
+      c.innerHTML = `<h4>投资计算</h4><div class="mono">${JSON.stringify(data.investment_calculation || {}, null, 2)}</div><div id="line" class="chart"></div>`;
+      const d = get(data, ['visualization_data', '定投收益曲线', '数据']);
+      if (d && d.系列) {
+        const len = d.系列[0]?.数据?.length || 0;
+        renderChart('line', {
+          tooltip: { trigger: 'axis' },
+          legend: { data: d.系列.map(s => s.名称) },
+          xAxis: { type: 'category', data: Array.from({length: len}, (_, i) => i + 1) },
+          yAxis: { type: 'value' },
+          series: d.系列.map(s => ({ type: 'line', smooth: true, name: s.名称, data: s.数据 }))
         });
+      }
+    } else if (state.stepIndex === 4) {
+      c.innerHTML = `<h4>风险评估报告</h4><div class="mono">${(data.risk_assessment_report || '暂无').replace(/</g, '&lt;')}</div>`;
+    } else {
+      c.innerHTML = `<h4>投资策略建议</h4><div class="mono">${(data.investment_advice || '暂无').replace(/</g, '&lt;')}</div>`;
+    }
+  }
 
-        // 初始加载示例，让页面美观
-        window.addEventListener('load', () => {
-            renderDashboard(SAMPLE_RESPONSE);
-        });
-    })();
+  function doLogout() {
+    state.token = '';
+    state.user = null;
+    state.history = [];
+    state.selected = null;
+    localStorage.removeItem('sessionToken');
+    localStorage.removeItem('sessionUser');
+    setAuthView();
+  }
+
+  el('loginBtn').onclick = () => auth('/api/auth/login');
+  el('registerBtn').onclick = () => auth('/api/auth/register');
+  el('logoutBtn').onclick = async () => {
+    await api('/api/auth/logout', { method: 'POST' });
+    doLogout();
+  };
+  el('runBtn').onclick = runWorkflow;
+  el('prevHistory').onclick = () => { if (state.historyPage > 1) loadHistory(state.historyPage - 1); };
+  el('nextHistory').onclick = () => {
+    const totalPages = Math.max(Math.ceil(state.historyTotal / state.historyPageSize), 1);
+    if (state.historyPage < totalPages) loadHistory(state.historyPage + 1);
+  };
+  el('prevStep').onclick = () => { state.stepIndex = (state.stepIndex + steps.length - 1) % steps.length; renderStep(); };
+  el('nextStep').onclick = () => { state.stepIndex = (state.stepIndex + 1) % steps.length; renderStep(); };
+
+  setAuthView();
+})();
 </script>
 </body>
 </html>
