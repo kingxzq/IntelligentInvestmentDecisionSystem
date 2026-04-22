@@ -143,6 +143,10 @@
       el('currentUser').textContent = state.user.username;
       loadHistory();
     }
+    state.history = data.items;
+    state.historyTotal = data.total;
+    renderHistory();
+    if (!state.selectedRecord && state.history.length) loadRecord(state.history[0].id);
   }
 
   function api(path, options = {}) {
