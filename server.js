@@ -21,6 +21,8 @@ const WORKFLOW_URL = process.env.COZE_WORKFLOW_URL || 'https://6vt93q3vyd.coze.s
 const sessionStore = new Map();
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24;
 let pool;
+let systemUserId = null;
+const SYSTEM_USERNAME = process.env.SYSTEM_USERNAME || "system_guest";
 
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
@@ -130,6 +132,18 @@ async function saveWorkflowModules(connection, recordId, normalized) {
   );
 }
 
+async function ensureSystemUser() {
+  if (systemUserId) return systemUserId;
+  const [rows] = await pool.query('SELECT id FROM users WHERE username = ? LIMIT 1', [SYSTEM_USERNAME]);
+  if (rows.length) {
+    systemUserId = rows[0].id;
+    return systemUserId;
+  }
+  const [result] = await pool.query('INSERT INTO users (username, password_hash) VALUES (?, ?)', [SYSTEM_USERNAME, hashPassword('guest_not_used')]);
+  systemUserId = result.insertId;
+  return systemUserId;
+}
+
 async function ensureDb() {
   const bootstrapConn = await mysql.createConnection({
     host: dbConfig.host,
@@ -210,6 +224,7 @@ async function ensureDb() {
       created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
       CONSTRAINT fk_strategy_record FOREIGN KEY (record_id) REFERENCES workflow_records(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`);
+  await ensureSystemUser();
 }
 
 function authMiddleware(req, res, next) {
@@ -254,17 +269,16 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-app.post('/api/auth/logout', authMiddleware, (req, res) => {
-  sessionStore.delete(req.sessionToken);
-  res.json({ message: '已退出登录' });
+app.post('/api/auth/logout', (_req, res) => {
+  res.json({ message: '登录界面已移除，无需退出登录' });
 });
 
-app.get('/api/history', authMiddleware, async (req, res) => {
+app.get('/api/history', async (req, res) => {
   const page = Math.max(Number(req.query.page || 1), 1);
   const pageSize = Math.min(Math.max(Number(req.query.pageSize || 5), 1), 20);
   const offset = (page - 1) * pageSize;
-  const [[{ total }]] = await pool.query('SELECT COUNT(*) AS total FROM workflow_records WHERE user_id = ?', [req.user.id]);
-  const [rows] = await pool.query('SELECT id, user_input, workflow_url, token_mask, created_at FROM workflow_records WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?', [req.user.id, pageSize, offset]);
+  const [[{ total }]] = await pool.query('SELECT COUNT(*) AS total FROM workflow_records');
+  const [rows] = await pool.query('SELECT id, user_input, workflow_url, token_mask, created_at FROM workflow_records ORDER BY created_at DESC LIMIT ? OFFSET ?', [pageSize, offset]);
   res.json({
     total, page, pageSize,
     items: rows.map((row) => ({
@@ -277,7 +291,7 @@ app.get('/api/history', authMiddleware, async (req, res) => {
   });
 });
 
-app.get('/api/history/:id', authMiddleware, async (req, res) => {
+app.get('/api/history/:id', async (req, res) => {
   const id = Number(req.params.id);
   if (!id) return res.status(400).json({ error: '无效的记录ID' });
 
@@ -298,8 +312,8 @@ app.get('/api/history/:id', authMiddleware, async (req, res) => {
        LEFT JOIN module_investment_calculator mic ON mic.record_id = wr.id
        LEFT JOIN module_risk_assessment mra ON mra.record_id = wr.id
        LEFT JOIN module_investment_strategy mis ON mis.record_id = wr.id
-      WHERE wr.id = ? AND wr.user_id = ? LIMIT 1`,
-    [id, req.user.id]
+      WHERE wr.id = ? LIMIT 1`,
+    [id]
   );
   if (!rows.length) return res.status(404).json({ error: '记录不存在' });
 
@@ -327,7 +341,7 @@ app.get('/api/history/:id', authMiddleware, async (req, res) => {
   });
 });
 
-app.post('/api/run', authMiddleware, async (req, res) => {
+app.post('/api/run', async (req, res) => {
   try {
     const { user_input, workflow_token } = req.body || {};
     if (!user_input || !workflow_token) return res.status(400).json({ error: 'user_input 和 workflow_token 都是必填项' });
@@ -346,9 +360,10 @@ app.post('/api/run', authMiddleware, async (req, res) => {
     const connection = await pool.getConnection();
     try {
       await connection.beginTransaction();
+      const defaultUserId = await ensureSystemUser();
       const [insertResult] = await connection.query(
         'INSERT INTO workflow_records (user_id, user_input, workflow_url, token_mask) VALUES (?, ?, ?, ?)',
-        [req.user.id, user_input, WORKFLOW_URL, tokenMask]
+        [defaultUserId, user_input, WORKFLOW_URL, tokenMask]
       );
       await saveWorkflowModules(connection, insertResult.insertId, normalized);
       await connection.commit();

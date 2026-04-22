@@ -10,16 +10,12 @@
     body { margin: 0; background: #f3f4f6; color: #1f2937; font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
     .layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
     .sidebar { background: #fff; border-right: 1px solid #e5e7eb; padding: 18px 12px; }
-    .logo { font-size: 18px; font-weight: 800; line-height: 1.35; margin-bottom: 18px; color: #1f2937; }
-    .tab-btn {
-      width: 100%; text-align: left; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
-      padding: 10px 12px; margin-bottom: 8px; cursor: pointer; color: #374151; font-weight: 600;
-    }
+    .logo { font-size: 18px; font-weight: 800; line-height: 1.35; margin-bottom: 18px; }
+    .tab-btn { width: 100%; text-align: left; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; cursor: pointer; color: #374151; font-weight: 600; }
     .tab-btn.active { background: #f9fafb; border-color: #d1d5db; }
     .main { padding: 16px 20px 24px; }
-    .title { font-size: 42px; margin: 0 0 12px; color: #1e3a5f; }
+    .title { font-size: 40px; margin: 0 0 12px; color: #1e3a5f; }
     .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 14px; margin-bottom: 12px; }
-    .auth-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
     label { display: block; margin-bottom: 6px; color: #6b7280; font-size: 13px; font-weight: 600; }
@@ -37,7 +33,7 @@
     .hidden { display:none !important; }
     .report { line-height: 1.8; white-space: pre-wrap; color: #334155; }
     .history-item { padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 8px; }
-    @media (max-width: 1080px) { .layout { grid-template-columns: 1fr; } .row,.row-3,.auth-wrap { grid-template-columns: 1fr; } }
+    @media (max-width: 1080px) { .layout { grid-template-columns: 1fr; } .row,.row-3 { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -46,34 +42,13 @@
     <div class="logo">智能投资决策系统</div>
     <div id="tabList"></div>
   </aside>
-
   <main class="main">
-    <section id="authCard" class="card">
-      <h3>登录 / 注册</h3>
-      <div class="auth-wrap">
-        <div><label>用户名</label><input id="username" placeholder="investor01" /></div>
-        <div><label>密码</label><input id="password" type="password" placeholder="请输入密码" /></div>
-      </div>
-      <div class="row" style="margin-top:10px;">
-        <button id="loginBtn" class="primary">登录</button>
-        <button id="registerBtn" class="secondary">注册</button>
-      </div>
-      <div id="authMsg" style="color:#b91c1c;margin-top:8px;"></div>
-    </section>
-
-    <section id="mainArea" class="hidden">
-      <h1 class="title">基于AI的多agent智能投资决策系统</h1>
-      <div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-        <div>当前用户：<b id="currentUser"></b></div>
-        <button id="logoutBtn" class="secondary" style="width:auto;">退出登录</button>
-      </div>
-
-      <section id="page1" class="page card"></section>
-      <section id="page2" class="page card hidden"></section>
-      <section id="page3" class="page card hidden"></section>
-      <section id="page4" class="page card hidden"></section>
-      <section id="page5" class="page card hidden"></section>
-    </section>
+    <h1 class="title">基于AI的多agent智能投资决策系统</h1>
+    <section id="page1" class="page card"></section>
+    <section id="page2" class="page card hidden"></section>
+    <section id="page3" class="page card hidden"></section>
+    <section id="page4" class="page card hidden"></section>
+    <section id="page5" class="page card hidden"></section>
   </main>
 </div>
 
@@ -87,7 +62,7 @@
   });
 
   const DEFAULT_DATA = {
-    investment_advice: '## 📝 您的个性化投资建议报告\n\n建议维持激进风格，但按半年再平衡，控制回撤。\n\n1) 核心配置以沪深300/中证500/创业板为主；\n2) 科技与新能源保留弹性仓位；\n3) 回撤超过20%时降低风险仓位。',
+    investment_advice: '## 📝 您的个性化投资建议报告\n\n建议维持激进风格，但按半年再平衡，控制回撤。\n1) 核心配置以沪深300/中证500/创业板为主；\n2) 科技与新能源保留弹性仓位；\n3) 回撤超过20%时降低风险仓位。',
     user_profile: {
       basic: { age_group: '25-35', income_range: '10-30万', investable_assets: 80000, asset_currency: 'CNY' },
       goal: { investment_horizon: '长期（3年以上）', specific_goal: '资产增值', expected_return: '追求高收益>10%' },
@@ -95,50 +70,19 @@
       preferences: { preferred_sectors: ['教育', 'AI'], esg_preference: '无明确偏好', liquidity_needs: '无随时支取需求' }
     },
     asset_allocation_model: {
-      风险等级: '激进型',
-      核心理念: '追求高收益，承受高风险',
+      风险等级: '激进型', 核心理念: '追求高收益，承受高风险',
       配置比例: { 股票类: 0.8, 债券类: 0.1, 现金及等价物: 0.05, 另类投资: 0.05 },
-      预期年化收益: '12-15%',
-      预期最大回撤: '20%',
+      预期年化收益: '12-15%', 预期最大回撤: '20%',
       详细配置: { 沪深300指数基金: 30.4, 中证500指数基金: 24.8, 创业板ETF: 15.2, 科技ETF: 8, 新能源ETF: 1.6, 信用债基金: 10, 货币市场基金: 5, 黄金ETF: 5 }
     },
     investment_calculation: {
       复利计算: { 期末价值: 128840.8, 总收益率: 61.05 },
       定投计算: { 期末价值: 103249.43, 总收益率: 29.06 },
       定投收益曲线: sampleDca,
-      不同持有期限收益: [
-        { 持有年限: 1, 总收益率: 10 },
-        { 持有年限: 3, 总收益率: 33.1 },
-        { 持有年限: 5, 总收益率: 61.05 },
-        { 持有年限: 10, 总收益率: 159.37 }
-      ],
-      不同情景分析: [
-        { 情景: '悲观', 总收益率: 27.63 },
-        { 情景: '基准', 总收益率: 61.05 },
-        { 情景: '乐观', 总收益率: 101.14 }
-      ],
-      各资产预期收益: {
-        沪深300指数基金: { 预期年化收益: 10 },
-        中证500指数基金: { 预期年化收益: 10 },
-        创业板ETF: { 预期年化收益: 10 },
-        科技ETF: { 预期年化收益: 10 },
-        新能源ETF: { 预期年化收益: 10 },
-        信用债基金: { 预期年化收益: 10 },
-        货币市场基金: { 预期年化收益: 2.5 },
-        黄金ETF: { 预期年化收益: 5 }
-      }
+      不同持有期限收益: [{ 持有年限: 1, 总收益率: 10 }, { 持有年限: 3, 总收益率: 33.1 }, { 持有年限: 5, 总收益率: 61.05 }, { 持有年限: 10, 总收益率: 159.37 }],
+      不同情景分析: [{ 情景: '悲观', 总收益率: 27.63 }, { 情景: '基准', 总收益率: 61.05 }, { 情景: '乐观', 总收益率: 101.14 }],
+      各资产预期收益: { 沪深300指数基金: { 预期年化收益: 10 }, 中证500指数基金: { 预期年化收益: 10 }, 创业板ETF: { 预期年化收益: 10 }, 科技ETF: { 预期年化收益: 10 }, 新能源ETF: { 预期年化收益: 10 }, 信用债基金: { 预期年化收益: 10 }, 货币市场基金: { 预期年化收益: 2.5 }, 黄金ETF: { 预期年化收益: 5 } }
     }
-  };
-
-  const state = {
-    token: localStorage.getItem('sessionToken') || '',
-    user: JSON.parse(localStorage.getItem('sessionUser') || 'null'),
-    currentTab: 'page1',
-    selected: DEFAULT_DATA,
-    history: [],
-    historyPage: 1,
-    historyPageSize: 6,
-    historyTotal: 0
   };
 
   const tabs = [
@@ -149,26 +93,15 @@
     { id: 'page5', text: '分页5 历史记录' }
   ];
 
+  const state = { currentTab: 'page1', selected: DEFAULT_DATA, history: [], historyPage: 1, historyPageSize: 6, historyTotal: 0 };
   const el = (id) => document.getElementById(id);
-  const authCard = el('authCard');
-  const mainArea = el('mainArea');
-  function get(obj, path, fallback = null) { return path.reduce((a, k) => a && a[k] !== undefined ? a[k] : null, obj) ?? fallback; }
+  const get = (obj, path, fallback = null) => path.reduce((a, k) => a && a[k] !== undefined ? a[k] : null, obj) ?? fallback;
 
-  function api(path, options = {}) {
-    const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
-    if (state.token) headers.Authorization = `Bearer ${state.token}`;
-    return fetch(path, { ...options, headers });
-  }
-
-  function initChart(id, option) {
-    const dom = document.getElementById(id);
-    if (!dom) return;
-    echarts.init(dom).setOption(option);
-  }
+  function api(path, options = {}) { return fetch(path, { ...options, headers: { 'Content-Type': 'application/json', ...(options.headers || {}) } }); }
+  function initChart(id, option) { const dom = document.getElementById(id); if (dom) echarts.init(dom).setOption(option); }
 
   function renderTabs() {
-    const t = el('tabList');
-    t.innerHTML = '';
+    const t = el('tabList'); t.innerHTML = '';
     tabs.forEach((x) => {
       const btn = document.createElement('button');
       btn.className = `tab-btn ${state.currentTab === x.id ? 'active' : ''}`;
@@ -182,28 +115,7 @@
     state.currentTab = id;
     renderTabs();
     tabs.forEach((x) => el(x.id).classList.toggle('hidden', x.id !== id));
-    renderPage1();
-    renderPage2();
-    renderPage3();
-    renderPage4();
-    renderPage5();
-  }
-
-  async function auth(path) {
-    const username = el('username').value.trim();
-    const password = el('password').value;
-    const resp = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
-    const data = await resp.json();
-    if (!resp.ok) { el('authMsg').textContent = data.error || '失败'; return; }
-    if (path.endsWith('/login')) {
-      state.token = data.token; state.user = data.user;
-      localStorage.setItem('sessionToken', state.token);
-      localStorage.setItem('sessionUser', JSON.stringify(state.user));
-      setAuthView();
-    } else {
-      el('authMsg').style.color = '#166534';
-      el('authMsg').textContent = data.message;
-    }
+    renderAllPages();
   }
 
   async function runWorkflow() {
@@ -221,10 +133,7 @@
     state.historyPage = page;
     const resp = await api(`/api/history?page=${page}&pageSize=${state.historyPageSize}`);
     const data = await resp.json();
-    if (!resp.ok) {
-      if (resp.status === 401) return doLogout();
-      return alert(data.error || '历史加载失败');
-    }
+    if (!resp.ok) return alert(data.error || '历史加载失败');
     state.history = data.items || [];
     state.historyTotal = data.total || 0;
     if (state.currentTab === 'page5') renderPage5();
@@ -239,10 +148,9 @@
   }
 
   function renderPage1() {
-    const d = state.selected;
-    const p = d.user_profile || {};
-    const asset = d.asset_allocation_model || {};
-    const calc = d.investment_calculation || {};
+    const p = state.selected.user_profile || {};
+    const asset = state.selected.asset_allocation_model || {};
+    const calc = state.selected.investment_calculation || {};
     el('page1').innerHTML = `
       <div class="card" style="margin:0 0 12px 0;">
         <label>用户描述</label>
@@ -259,161 +167,56 @@
         </div>
       </div>
       <div class="row-3">
-        <div class="card">
-          <h3>用户画像</h3>
-          <div>
-            <span class="pill">${get(p,['basic','age_group'],'-')}</span>
-            <span class="pill">年收入 ${get(p,['basic','income_range'],'-')}</span>
-            <span class="pill">可投资 ¥${get(p,['basic','investable_assets'],'-')}</span>
-            <span class="pill">风险 ${get(p,['risk_tolerance','risk_level'],'-')}</span>
-            <span class="pill">偏好 ${(get(p,['preferences','preferred_sectors'],[])||[]).join('、')}</span>
-          </div>
-          <div class="value-row"><span>投资目标</span><b>${get(p,['goal','specific_goal'],'-')}</b></div>
-          <div class="value-row"><span>预期收益</span><b>${get(p,['goal','expected_return'],'-')}</b></div>
-          <div class="value-row"><span>期限</span><b>${get(p,['goal','investment_horizon'],'-')}</b></div>
-        </div>
-        <div class="card">
-          <h3>核心配置</h3>
-          <div class="value-row"><span>股票类</span><b>${Math.round((get(asset,['配置比例','股票类'],0))*100)}%</b></div>
-          <div class="value-row"><span>债券类</span><b>${Math.round((get(asset,['配置比例','债券类'],0))*100)}%</b></div>
-          <div class="value-row"><span>现金/另类</span><b>${Math.round((get(asset,['配置比例','现金及等价物'],0)*100 + get(asset,['配置比例','另类投资'],0)*100)}%</b></div>
-          <div class="value-row"><span>预期年化</span><b>${asset['预期年化收益'] || '-'}</b></div>
-          <div class="value-row"><span>最大回撤</span><b>${asset['预期最大回撤'] || '-'}</b></div>
-        </div>
-        <div class="card">
-          <h3>收益模拟</h3>
-          <div class="value-row"><span>5年复利终值</span><b>¥${get(calc,['复利计算','期末价值'],'-')}</b></div>
-          <div class="value-row"><span>复利总收益率</span><b>${get(calc,['复利计算','总收益率'],'-')}%</b></div>
-          <div class="value-row"><span>5年定投终值</span><b>¥${get(calc,['定投计算','期末价值'],'-')}</b></div>
-          <div class="value-row"><span>定投收益率</span><b>${get(calc,['定投计算','总收益率'],'-')}%</b></div>
-        </div>
-      </div>
-    `;
+        <div class="card"><h3>用户画像</h3><div><span class="pill">${get(p,['basic','age_group'],'-')}</span><span class="pill">年收入 ${get(p,['basic','income_range'],'-')}</span><span class="pill">可投资 ¥${get(p,['basic','investable_assets'],'-')}</span><span class="pill">风险 ${get(p,['risk_tolerance','risk_level'],'-')}</span><span class="pill">偏好 ${(get(p,['preferences','preferred_sectors'],[])||[]).join('、')}</span></div><div class="value-row"><span>投资目标</span><b>${get(p,['goal','specific_goal'],'-')}</b></div><div class="value-row"><span>预期收益</span><b>${get(p,['goal','expected_return'],'-')}</b></div><div class="value-row"><span>期限</span><b>${get(p,['goal','investment_horizon'],'-')}</b></div></div>
+        <div class="card"><h3>核心配置</h3><div class="value-row"><span>股票类</span><b>${Math.round((get(asset,['配置比例','股票类'],0))*100)}%</b></div><div class="value-row"><span>债券类</span><b>${Math.round((get(asset,['配置比例','债券类'],0))*100)}%</b></div><div class="value-row"><span>现金/另类</span><b>${Math.round((get(asset,['配置比例','现金及等价物'],0)*100 + get(asset,['配置比例','另类投资'],0)*100)}%</b></div><div class="value-row"><span>预期年化</span><b>${asset['预期年化收益'] || '-'}</b></div><div class="value-row"><span>最大回撤</span><b>${asset['预期最大回撤'] || '-'}</b></div></div>
+        <div class="card"><h3>收益模拟</h3><div class="value-row"><span>5年复利终值</span><b>¥${get(calc,['复利计算','期末价值'],'-')}</b></div><div class="value-row"><span>复利总收益率</span><b>${get(calc,['复利计算','总收益率'],'-')}%</b></div><div class="value-row"><span>5年定投终值</span><b>¥${get(calc,['定投计算','期末价值'],'-')}</b></div><div class="value-row"><span>定投收益率</span><b>${get(calc,['定投计算','总收益率'],'-')}%</b></div></div>
+      </div>`;
     el('runBtn').onclick = runWorkflow;
     el('loadSampleBtn').onclick = () => { state.selected = DEFAULT_DATA; renderAllPages(); };
   }
 
   function renderPage2() {
     const d = state.selected;
-    el('page2').innerHTML = `
-      <div class="row">
-        <div class="card"><h3>资产配置饼图</h3><div id="assetPie" class="chart"></div></div>
-        <div class="card"><h3>定投收益曲线</h3><div id="dcaLine" class="chart"></div></div>
-      </div>
-    `;
+    el('page2').innerHTML = `<div class="row"><div class="card"><h3>资产配置饼图</h3><div id="assetPie" class="chart"></div></div><div class="card"><h3>定投收益曲线</h3><div id="dcaLine" class="chart"></div></div></div>`;
     const details = get(d, ['asset_allocation_model', '详细配置'], {});
-    initChart('assetPie', {
-      tooltip: { trigger: 'item' },
-      series: [{ type: 'pie', radius: ['40%', '70%'], data: Object.keys(details).map(k => ({ name: k, value: details[k] })) }]
-    });
+    initChart('assetPie', { tooltip: { trigger: 'item' }, series: [{ type: 'pie', radius: ['40%', '70%'], data: Object.keys(details).map(k => ({ name: k, value: details[k] })) }] });
     const line = get(d, ['investment_calculation', '定投收益曲线'], []);
-    initChart('dcaLine', {
-      tooltip: { trigger: 'axis' },
-      legend: { data: ['累计投入', '累计价值', '累计收益'] },
-      xAxis: { type: 'category', data: line.map(i => i.月份) },
-      yAxis: { type: 'value' },
-      series: [
-        { type: 'line', name: '累计投入', data: line.map(i => i.累计投入), smooth: true },
-        { type: 'line', name: '累计价值', data: line.map(i => i.累计价值), smooth: true },
-        { type: 'line', name: '累计收益', data: line.map(i => i.累计收益), smooth: true }
-      ]
-    });
+    initChart('dcaLine', { tooltip: { trigger: 'axis' }, legend: { data: ['累计投入', '累计价值', '累计收益'] }, xAxis: { type: 'category', data: line.map(i => i.月份) }, yAxis: { type: 'value' }, series: [{ type: 'line', name: '累计投入', data: line.map(i => i.累计投入), smooth: true }, { type: 'line', name: '累计价值', data: line.map(i => i.累计价值), smooth: true }, { type: 'line', name: '累计收益', data: line.map(i => i.累计收益), smooth: true }] });
   }
 
   function renderPage3() {
     const d = state.selected;
-    el('page3').innerHTML = `
-      <div class="row-3">
-        <div class="card"><h3>情景收益对比</h3><div id="sceneBar" class="chart-sm"></div></div>
-        <div class="card"><h3>各资产预期收益</h3><div id="assetReturnBar" class="chart-sm"></div></div>
-        <div class="card"><h3>不同持有期收益</h3><div id="holdingLine" class="chart-sm"></div></div>
-      </div>
-    `;
+    el('page3').innerHTML = `<div class="row-3"><div class="card"><h3>情景收益对比</h3><div id="sceneBar" class="chart-sm"></div></div><div class="card"><h3>各资产预期收益</h3><div id="assetReturnBar" class="chart-sm"></div></div><div class="card"><h3>不同持有期收益</h3><div id="holdingLine" class="chart-sm"></div></div></div>`;
     const scene = get(d, ['investment_calculation', '不同情景分析'], []);
-    initChart('sceneBar', {
-      xAxis: { type: 'category', data: scene.map(i => i.情景) },
-      yAxis: { type: 'value', name: '总收益率%' },
-      series: [{ type: 'bar', data: scene.map(i => i.总收益率) }]
-    });
-    const ar = get(d, ['investment_calculation', '各资产预期收益'], {});
-    const names = Object.keys(ar); const vals = names.map(k => get(ar,[k,'预期年化收益'],0));
+    initChart('sceneBar', { xAxis: { type: 'category', data: scene.map(i => i.情景) }, yAxis: { type: 'value', name: '总收益率%' }, series: [{ type: 'bar', data: scene.map(i => i.总收益率) }] });
+    const ar = get(d, ['investment_calculation', '各资产预期收益'], {}); const names = Object.keys(ar); const vals = names.map(k => get(ar,[k,'预期年化收益'],0));
     initChart('assetReturnBar', { xAxis: { type:'category', data:names, axisLabel:{ rotate: 28 } }, yAxis:{ type:'value', name:'年化%' }, series:[{ type:'bar', data: vals }] });
     const hp = get(d, ['investment_calculation', '不同持有期限收益'], []);
     initChart('holdingLine', { xAxis: { type:'category', data: hp.map(i => i.持有年限) }, yAxis: { type:'value', name:'总收益率%' }, series:[{ type:'line', data: hp.map(i => i.总收益率), smooth:true }] });
   }
 
-  function renderPage4() {
-    const report = state.selected.investment_advice || '暂无建议报告';
-    el('page4').innerHTML = `<h3>投资建议报告</h3><div class="report">${report}</div>`;
-  }
+  function renderPage4() { el('page4').innerHTML = `<h3>投资建议报告</h3><div class="report">${state.selected.investment_advice || '暂无建议报告'}</div>`; }
 
   function renderPage5() {
     const totalPages = Math.max(Math.ceil(state.historyTotal / state.historyPageSize), 1);
-    el('page5').innerHTML = `
-      <h3>历史记录</h3>
-      <div class="row">
-        <div class="card"><h4>分页记录输入长度图</h4><div id="historyChart" class="chart"></div></div>
-        <div class="card">
-          <h4>历史列表</h4>
-          <div id="historyList"></div>
-          <div style="display:flex;gap:8px;margin-top:8px;align-items:center;">
-            <button id="prevHistory" class="secondary">上一页</button>
-            <button id="nextHistory" class="secondary">下一页</button>
-            <span class="mini">第 ${state.historyPage}/${totalPages} 页，共 ${state.historyTotal} 条</span>
-          </div>
-        </div>
-      </div>
-    `;
-    initChart('historyChart', {
-      xAxis: { type:'category', data: state.history.map(i => `#${i.id}`) },
-      yAxis: { type:'value', name:'输入字数' },
-      series: [{ type:'bar', data: state.history.map(i => (i.user_input || '').length) }]
-    });
-    const list = el('historyList');
-    list.innerHTML = '';
+    el('page5').innerHTML = `<h3>历史记录</h3><div class="row"><div class="card"><h4>分页记录输入长度图</h4><div id="historyChart" class="chart"></div></div><div class="card"><h4>历史列表</h4><div id="historyList"></div><div style="display:flex;gap:8px;margin-top:8px;align-items:center;"><button id="prevHistory" class="secondary">上一页</button><button id="nextHistory" class="secondary">下一页</button><span class="mini">第 ${state.historyPage}/${totalPages} 页，共 ${state.historyTotal} 条</span></div></div></div>`;
+    initChart('historyChart', { xAxis: { type:'category', data: state.history.map(i => `#${i.id}`) }, yAxis: { type:'value', name:'输入字数' }, series: [{ type:'bar', data: state.history.map(i => (i.user_input || '').length) }] });
+    const list = el('historyList'); list.innerHTML = '';
     state.history.forEach((it) => {
-      const div = document.createElement('div');
-      div.className = 'history-item';
+      const div = document.createElement('div'); div.className = 'history-item';
       div.innerHTML = `<div><b>#${it.id}</b> ${new Date(it.created_at).toLocaleString()}</div><div class='mini'>${(it.user_input || '').slice(0, 80)}...</div>`;
-      const btn = document.createElement('button');
-      btn.className = 'secondary';
-      btn.style.marginTop = '6px';
-      btn.textContent = '复现该记录';
-      btn.onclick = () => replayRecord(it.id);
-      div.appendChild(btn);
-      list.appendChild(div);
+      const btn = document.createElement('button'); btn.className = 'secondary'; btn.style.marginTop = '6px'; btn.textContent = '复现该记录'; btn.onclick = () => replayRecord(it.id);
+      div.appendChild(btn); list.appendChild(div);
     });
     el('prevHistory').onclick = () => { if (state.historyPage > 1) loadHistory(state.historyPage - 1); };
     el('nextHistory').onclick = () => { if (state.historyPage < totalPages) loadHistory(state.historyPage + 1); };
   }
 
-  function renderAllPages() {
-    renderPage1(); renderPage2(); renderPage3(); renderPage4(); renderPage5();
-  }
+  function renderAllPages() { renderPage1(); renderPage2(); renderPage3(); renderPage4(); renderPage5(); }
 
-  function setAuthView() {
-    const ok = Boolean(state.token && state.user);
-    authCard.classList.toggle('hidden', ok);
-    mainArea.classList.toggle('hidden', !ok);
-    if (!ok) return;
-    el('currentUser').textContent = state.user.username;
-    renderTabs();
-    switchTab(state.currentTab);
-    loadHistory();
-  }
-
-  function doLogout() {
-    state.token = ''; state.user = null;
-    localStorage.removeItem('sessionToken');
-    localStorage.removeItem('sessionUser');
-    setAuthView();
-  }
-
-  el('loginBtn').onclick = () => auth('/api/auth/login');
-  el('registerBtn').onclick = () => auth('/api/auth/register');
-  el('logoutBtn').onclick = async () => { await api('/api/auth/logout', { method: 'POST' }); doLogout(); };
-
-  setAuthView();
+  renderTabs();
+  switchTab('page1');
+  loadHistory();
 })();
 </script>
 </body>
