@@ -98,7 +98,15 @@
   const get = (obj, path, fallback = null) => path.reduce((a, k) => a && a[k] !== undefined ? a[k] : null, obj) ?? fallback;
 
   function api(path, options = {}) { return fetch(path, { ...options, headers: { 'Content-Type': 'application/json', ...(options.headers || {}) } }); }
-  function initChart(id, option) { const dom = document.getElementById(id); if (dom) echarts.init(dom).setOption(option); }
+  function initChart(id, option) {
+    const dom = document.getElementById(id);
+    if (!dom) return;
+    if (!window.echarts) {
+      dom.innerHTML = '<div style="padding:16px;color:#6b7280;">图表库加载失败（CDN不可达），已保留默认示例数据文本。</div>';
+      return;
+    }
+    window.echarts.init(dom).setOption(option);
+  }
 
   function renderTabs() {
     const t = el('tabList'); t.innerHTML = '';
