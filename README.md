@@ -49,7 +49,20 @@ npm install
 - `DB_NAME`：数据库名，默认 `investment_system`
 - `COZE_WORKFLOW_URL`：工作流 URL，默认 `https://6vt93q3vyd.coze.site/run`
 
-Linux/macOS 示例：
+Windows 11（PowerShell，按你提供的 MySQL 密码 `12345678`）：
+
+```powershell
+setx DB_HOST "127.0.0.1"
+setx DB_PORT "3306"
+setx DB_USER "root"
+setx DB_PASSWORD "12345678"
+setx DB_NAME "investment_system"
+setx COZE_WORKFLOW_URL "https://6vt93q3vyd.coze.site/run"
+```
+
+> `setx` 对新开的终端生效；设置后请重新打开 PowerShell / CMD 再启动项目。
+
+Linux/macOS 示例（如需）：
 
 ```bash
 export DB_HOST=127.0.0.1
@@ -81,6 +94,20 @@ npm start
 - `module_investment_calculator`
 - `module_risk_assessment`
 - `module_investment_strategy`
+
+### 2.5 手动建库建表（可选）
+
+如果你希望在 Windows 上先手动初始化数据库，可直接执行项目内 SQL 文件：
+
+```powershell
+mysql -uroot -p12345678 < .\db\init_mysql57.sql
+```
+
+或进入 MySQL 后执行：
+
+```sql
+SOURCE D:/your-project-path/IntelligentInvestmentDecisionSystem/db/init_mysql57.sql;
+```
 
 ---
 
