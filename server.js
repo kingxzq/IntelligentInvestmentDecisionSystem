@@ -135,6 +135,13 @@ app.post('/api/auth/logout', authMiddleware, (req, res) => {
   res.json({ message: '已退出登录' });
 });
 
+});
+
+app.post('/api/auth/logout', authMiddleware, (req, res) => {
+  sessionStore.delete(req.sessionToken);
+  res.json({ message: '已退出登录' });
+});
+
 app.get('/api/history', authMiddleware, async (req, res) => {
   const page = Math.max(Number(req.query.page || 1), 1);
   const pageSize = Math.min(Math.max(Number(req.query.pageSize || 5), 1), 20);

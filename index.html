@@ -120,6 +120,7 @@
     historyTotal: 0,
     history: [],
     selectedRecord: null
+    history: []
   };
 
   const steps = [
@@ -328,6 +329,179 @@
     state.history = [];
     state.selected = null;
     state.selectedRecord = null;
+    localStorage.removeItem('sessionToken');
+    localStorage.removeItem('sessionUser');
+    setAuthView();
+  }
+
+
+  function api(path, options = {}) {
+    const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+    if (state.token) headers.Authorization = `Bearer ${state.token}`;
+    return fetch(path, { ...options, headers });
+  }
+
+  async function auth(path) {
+    const username = el('username').value.trim();
+    const password = el('password').value;
+    const msg = el('authMsg');
+    msg.textContent = '';
+    const resp = await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      msg.textContent = data.error || '操作失败';
+      return;
+    }
+    if (path.endsWith('/login')) {
+      state.token = data.token;
+      state.user = data.user;
+      localStorage.setItem('sessionToken', state.token);
+      localStorage.setItem('sessionUser', JSON.stringify(state.user));
+      setAuthView();
+    } else {
+      msg.style.color = '#166534';
+      msg.textContent = data.message;
+    }
+  }
+
+  async function runWorkflow() {
+    const workflow_token = el('workflowToken').value.trim();
+    const user_input = el('userInput').value.trim();
+    const resp = await api('/api/run', {
+      method: 'POST',
+      body: JSON.stringify({ workflow_token, user_input })
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      alert(data.error || '调用失败');
+      return;
+    }
+    state.selected = data.data;
+    state.stepIndex = 0;
+    renderStep();
+    await loadHistory(1);
+  }
+
+  async function loadHistory(page = state.historyPage) {
+    state.historyPage = page;
+    const resp = await api(`/api/history?page=${page}&pageSize=${state.historyPageSize}`);
+    const data = await resp.json();
+    if (!resp.ok) {
+      if (resp.status === 401) {
+        doLogout();
+        return;
+      }
+      alert(data.error || '加载历史失败');
+      return;
+    }
+    state.history = data.items;
+    state.historyTotal = data.total;
+    renderHistory();
+    if (!state.selected && state.history.length) {
+      state.selected = state.history[0].response;
+      renderStep();
+    }
+  }
+
+  function renderHistory() {
+    const list = el('historyList');
+    list.innerHTML = '';
+    state.history.forEach((item) => {
+      const div = document.createElement('div');
+      div.className = 'history-item';
+      div.innerHTML = `<b>#${item.id}</b> ${new Date(item.created_at).toLocaleString()}<br/><small>${item.user_input.slice(0, 120)}</small><br/>`;
+      const btn = document.createElement('button');
+      btn.className = 'inline';
+      btn.textContent = '查看该记录';
+      btn.onclick = () => {
+        state.selected = item.response;
+        state.stepIndex = 0;
+        renderStep();
+      };
+      div.appendChild(btn);
+      list.appendChild(div);
+    });
+    const totalPages = Math.max(Math.ceil(state.historyTotal / state.historyPageSize), 1);
+    el('historyPageInfo').textContent = `第 ${state.historyPage} / ${totalPages} 页，共 ${state.historyTotal} 条`;
+  }
+
+  function get(obj, path, fallback = null) {
+    return path.reduce((acc, k) => acc && acc[k] !== undefined ? acc[k] : null, obj) ?? fallback;
+  }
+
+  function renderChips() {
+    const chips = el('stepChips');
+    chips.innerHTML = '';
+    steps.forEach((s, i) => {
+      const span = document.createElement('span');
+      span.className = `step-chip ${state.stepIndex === i ? 'active' : ''}`;
+      span.textContent = s;
+      span.onclick = () => { state.stepIndex = i; renderStep(); };
+      chips.appendChild(span);
+    });
+  }
+
+  function renderChart(containerId, option) {
+    const node = document.getElementById(containerId);
+    if (!node) return;
+    const chart = echarts.init(node);
+    chart.setOption(option);
+  }
+
+  function renderStep() {
+    renderChips();
+    el('stepLabel').textContent = steps[state.stepIndex];
+    const data = state.selected || {};
+    const c = el('stepContent');
+
+    if (state.stepIndex === 0) {
+      c.innerHTML = `
+        <h4>市场情报报告</h4>
+        <div class="mono">${(data.market_intelligence_report || '暂无').replace(/</g, '&lt;')}</div>
+        <h4>市场实时数据</h4>
+        <div class="mono">${JSON.stringify(data.market_realtime_data || {}, null, 2)}</div>`;
+    } else if (state.stepIndex === 1) {
+      c.innerHTML = `<h4>风险计算结果</h4><div class="mono">${JSON.stringify(data.risk_metrics || {}, null, 2)}</div>`;
+    } else if (state.stepIndex === 2) {
+      c.innerHTML = `
+        <h4>资产配置模型</h4><div class="mono">${JSON.stringify(data.asset_allocation_model || {}, null, 2)}</div>
+        <div id="pie" class="chart"></div>`;
+      const pie = get(data, ['visualization_data', '资产配置饼图', '数据']);
+      if (pie && pie.标签) {
+        renderChart('pie', {
+          tooltip: { trigger: 'item' },
+          series: [{ type: 'pie', radius: ['40%', '70%'], data: pie.标签.map((n, i) => ({ name: n, value: pie.比例[i] })) }]
+        });
+      }
+    } else if (state.stepIndex === 3) {
+      c.innerHTML = `<h4>投资计算</h4><div class="mono">${JSON.stringify(data.investment_calculation || {}, null, 2)}</div><div id="line" class="chart"></div>`;
+      const d = get(data, ['visualization_data', '定投收益曲线', '数据']);
+      if (d && d.系列) {
+        const len = d.系列[0]?.数据?.length || 0;
+        renderChart('line', {
+          tooltip: { trigger: 'axis' },
+          legend: { data: d.系列.map(s => s.名称) },
+          xAxis: { type: 'category', data: Array.from({length: len}, (_, i) => i + 1) },
+          yAxis: { type: 'value' },
+          series: d.系列.map(s => ({ type: 'line', smooth: true, name: s.名称, data: s.数据 }))
+        });
+      }
+    } else if (state.stepIndex === 4) {
+      c.innerHTML = `<h4>风险评估报告</h4><div class="mono">${(data.risk_assessment_report || '暂无').replace(/</g, '&lt;')}</div>`;
+    } else {
+      c.innerHTML = `<h4>投资策略建议</h4><div class="mono">${(data.investment_advice || '暂无').replace(/</g, '&lt;')}</div>`;
+    }
+  }
+
+  function doLogout() {
+    state.token = '';
+    state.user = null;
+    state.history = [];
+    state.selected = null;
     localStorage.removeItem('sessionToken');
     localStorage.removeItem('sessionUser');
     setAuthView();
