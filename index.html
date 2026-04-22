@@ -143,6 +143,44 @@
       el('currentUser').textContent = state.user.username;
       loadHistory();
     }
+    state.history = data.items;
+    state.historyTotal = data.total;
+    renderHistory();
+    if (!state.selectedRecord && state.history.length) loadRecord(state.history[0].id);
+  }
+
+  function renderHistory() {
+    const list = el('historyList');
+    list.innerHTML = '';
+    state.history.forEach((item) => {
+      const div = document.createElement('div');
+      div.className = 'history-item';
+      div.innerHTML = `<b>#${item.id}</b> ${new Date(item.created_at).toLocaleString()}<br/><small>${item.user_input.slice(0, 120)}</small><br/><small>workflow: ${item.workflow_url}</small> <small>token: ${item.token_mask || '-'}</small><br/>`;
+      const btn = document.createElement('button');
+      btn.className = 'inline';
+      btn.textContent = '查看参数并复现六模块';
+      btn.onclick = () => loadRecord(item.id);
+      div.appendChild(btn);
+      list.appendChild(div);
+    });
+    const totalPages = Math.max(Math.ceil(state.historyTotal / state.historyPageSize), 1);
+    el('historyPageInfo').textContent = `第 ${state.historyPage} / ${totalPages} 页，共 ${state.historyTotal} 条`;
+  }
+
+  function get(obj, path, fallback = null) {
+    return path.reduce((acc, k) => acc && acc[k] !== undefined ? acc[k] : null, obj) ?? fallback;
+  }
+
+  function renderChips() {
+    const chips = el('stepChips');
+    chips.innerHTML = '';
+    steps.forEach((s, i) => {
+      const span = document.createElement('span');
+      span.className = `step-chip ${state.stepIndex === i ? 'active' : ''}`;
+      span.textContent = s;
+      span.onclick = () => { state.stepIndex = i; renderStep(); };
+      chips.appendChild(span);
+    });
   }
 
   function api(path, options = {}) {
