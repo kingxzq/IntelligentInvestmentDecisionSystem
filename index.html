@@ -6,153 +6,266 @@
   <title>智能投资决策系统</title>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
   <style>
-    body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; margin: 0; background: #f5f7fb; color: #0f172a; }
-    .app { max-width: 1200px; margin: 0 auto; padding: 20px; }
-    .card { background: #fff; border-radius: 14px; padding: 16px; box-shadow: 0 8px 20px rgba(15,23,42,.06); margin-bottom: 16px; }
+    :root {
+      --bg1: #060b1f;
+      --bg2: #09183f;
+      --bg3: #0e2d66;
+      --card: rgba(11, 25, 61, 0.72);
+      --line: rgba(143, 196, 255, 0.25);
+      --text: #e8f0ff;
+      --muted: #9db4e8;
+      --accent: #3b82f6;
+      --accent2: #06b6d4;
+      --ok: #34d399;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background:
+        radial-gradient(1200px 600px at 0% 0%, rgba(56,189,248,.20), transparent 60%),
+        radial-gradient(1000px 560px at 100% 20%, rgba(59,130,246,.25), transparent 60%),
+        linear-gradient(160deg, var(--bg1), var(--bg2), var(--bg3));
+      min-height: 100vh;
+    }
+    .app { max-width: 1280px; margin: 0 auto; padding: 18px; }
+    .hero {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px;
+      backdrop-filter: blur(8px);
+      background: linear-gradient(120deg, rgba(12,24,58,.8), rgba(16,38,88,.72));
+      box-shadow: 0 12px 40px rgba(0, 0, 0, .35);
+      margin-bottom: 14px;
+    }
+    h1 { margin: 0 0 8px; font-size: 30px; }
+    .subtitle { color: var(--muted); margin: 0; }
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 14px 0;
+    }
+    .nav button {
+      border: 1px solid rgba(88,160,255,.45);
+      background: linear-gradient(135deg, rgba(35,86,190,.7), rgba(15,159,188,.7));
+      color: #fff;
+      border-radius: 999px;
+      padding: 9px 16px;
+      cursor: pointer;
+      font-weight: 600;
+      letter-spacing: .2px;
+      transition: .2s transform, .2s box-shadow;
+      width: auto;
+    }
+    .nav button:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(39,138,255,.35); }
+    .nav button.active { outline: 2px solid rgba(255,255,255,.4); }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 6px 24px rgba(4, 8, 20, .35);
+      margin-bottom: 12px;
+    }
+    .hidden { display: none !important; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .row-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
-    label { display: block; font-size: 13px; color: #334155; margin-bottom: 6px; }
-    input, textarea, button { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; }
-    textarea { min-height: 90px; resize: vertical; }
-    button { cursor: pointer; background: #1d4ed8; border: none; color: #fff; font-weight: 600; }
-    button.secondary { background: #475569; }
+    label { display: block; font-size: 13px; margin-bottom: 6px; color: #c8d8ff; }
+    input, textarea, button {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid rgba(111,151,214,.45);
+      padding: 10px;
+      background: rgba(10,24,59,.85);
+      color: #fff;
+      font-size: 14px;
+    }
+    textarea { min-height: 96px; resize: vertical; }
+    button.primary { background: linear-gradient(135deg, #2563eb, #06b6d4); border: none; font-weight: 700; }
+    button.secondary { background: rgba(37, 66, 118, .75); }
     button.inline { width: auto; padding: 8px 12px; }
-    .hidden { display: none; }
-    .steps { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-    .step-chip { background: #e2e8f0; color: #0f172a; padding: 6px 10px; border-radius: 999px; font-size: 12px; }
-    .step-chip.active { background: #2563eb; color: #fff; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background: #f8fafc; padding: 10px; border-radius: 8px; overflow: auto; white-space: pre-wrap; }
-    .history-item { border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; margin-bottom: 8px; }
+    .mono {
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 260px;
+      overflow: auto;
+      background: rgba(2,8,26,.65);
+      border: 1px solid rgba(111,151,214,.25);
+      border-radius: 10px;
+      padding: 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+    }
+    .module-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+    .module-tile {
+      border-radius: 12px;
+      padding: 12px;
+      border: 1px solid rgba(77,145,255,.35);
+      background: linear-gradient(160deg, rgba(25,58,122,.58), rgba(6,35,79,.45));
+    }
+    .module-tile p { color: var(--muted); margin: 6px 0 0; font-size: 12px; }
+    .history-item { border: 1px solid rgba(137,174,230,.35); border-radius: 10px; padding: 10px; margin-bottom: 8px; }
     .chart { width: 100%; height: 280px; }
-    .json-block { max-height: 220px; overflow: auto; }
-    @media (max-width: 900px) { .row, .row-3 { grid-template-columns: 1fr; } }
+    .profile-badge {
+      display: inline-flex;
+      gap: 6px;
+      margin: 3px 6px 3px 0;
+      background: rgba(15,63,135,.55);
+      border: 1px solid rgba(145,202,255,.3);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+    }
+    @media (max-width: 960px) { .row,.row-3,.module-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
   <div class="app">
-    <h1>基于AI的多 Agent 智能投资决策系统</h1>
+    <section class="hero">
+      <h1>智能投资决策系统 · 科技总览</h1>
+      <p class="subtitle">首页作为发送与返回总览，历史记录独立页面，六个模块支持单页跳转展示。</p>
+    </section>
 
-    <div id="authCard" class="card">
+    <section id="authCard" class="card">
       <h3>登录 / 注册</h3>
       <div class="row">
-        <div>
-          <label>用户名</label>
-          <input id="username" placeholder="例如 investor01" />
-        </div>
-        <div>
-          <label>密码</label>
-          <input id="password" type="password" placeholder="请输入密码" />
-        </div>
+        <div><label>用户名</label><input id="username" placeholder="例如 investor01" /></div>
+        <div><label>密码</label><input id="password" type="password" placeholder="请输入密码" /></div>
       </div>
       <div class="row" style="margin-top:10px;">
-        <button id="loginBtn">登录</button>
+        <button id="loginBtn" class="primary">登录</button>
         <button id="registerBtn" class="secondary">注册</button>
       </div>
-      <div id="authMsg" style="margin-top:8px;color:#b91c1c"></div>
-    </div>
+      <div id="authMsg" style="color:#ff7f7f;margin-top:8px;"></div>
+    </section>
 
-    <div id="mainArea" class="hidden">
+    <section id="mainArea" class="hidden">
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
           <div>当前用户：<b id="currentUser"></b></div>
           <button id="logoutBtn" class="inline secondary">退出</button>
         </div>
-        <div class="row" style="margin-top:10px;">
-          <div>
-            <label>Coze Workflow Token</label>
-            <input id="workflowToken" type="password" placeholder="Bearer token (不含 Bearer 前缀)" />
-          </div>
-          <div>
-            <label>用户输入画像文本</label>
-            <textarea id="userInput">我今年25岁职场新人，年收入14万，每年8万可投资，偏好AI与教育，风险激进。</textarea>
-          </div>
-        </div>
-        <button id="runBtn" style="margin-top:10px;">发送到工作流并保存结果</button>
-      </div>
-
-      <div class="card">
-        <h3>历史记录（MySQL 5.7）</h3>
-        <div id="historyList"></div>
-        <div style="display:flex; gap:8px; margin-top:8px;">
-          <button id="prevHistory" class="inline secondary">上一页</button>
-          <button id="nextHistory" class="inline secondary">下一页</button>
-          <span id="historyPageInfo" style="line-height:32px;"></span>
+        <div style="margin-top:10px;">
+          <b>人物画像总览（所有页面顶部固定显示）</b>
+          <div id="profileBadges" style="margin-top:8px"></div>
+          <div id="profileRaw" class="mono" style="margin-top:8px;max-height:180px;"></div>
         </div>
       </div>
 
-      <div class="card">
-        <h3>历史决策参数查看与复现</h3>
-        <div id="recordMeta" class="mono">请选择一条历史记录后查看输入参数与输出参数。</div>
-        <div class="row" style="margin-top:10px;">
-          <div>
-            <label>决策输入参数（user_input）</label>
-            <div id="recordInput" class="mono json-block">暂无</div>
-          </div>
-          <div>
-            <label>决策输出参数（workflow response）</label>
-            <div id="recordOutput" class="mono json-block">暂无</div>
-          </div>
-        </div>
-      </div>
+      <div class="nav" id="pageNav"></div>
 
-      <div class="card">
-        <h3>流程分页展示</h3>
-        <div class="steps" id="stepChips"></div>
-        <div style="display:flex; gap:8px; margin-bottom:10px;">
-          <button id="prevStep" class="inline secondary">上一步</button>
-          <button id="nextStep" class="inline secondary">下一步</button>
-          <span id="stepLabel" style="line-height:32px;"></span>
-        </div>
-        <div id="stepContent"></div>
-      </div>
-    </div>
+      <section id="view-overview" class="view card"></section>
+      <section id="view-history" class="view card hidden"></section>
+      <section id="view-module" class="view card hidden"></section>
+    </section>
   </div>
 
 <script>
 (() => {
+  const DEFAULT_DATA = {
+    investment_advice: "## 📝 您的个性化投资建议报告\n建议激进型投资者以指数+成长赛道为主，定期再平衡。",
+    user_profile: {
+      basic: { age_group: "25-35", income_range: "10-30万", investable_assets: 80000, asset_currency: "CNY" },
+      goal: { investment_horizon: "长期（3年以上）", specific_goal: "资产增值", expected_return: "追求高收益>10%" },
+      risk_tolerance: { max_loss_acceptance: ">20%", investment_experience: "少量经验", risk_level: "激进型" },
+      preferences: { preferred_sectors: ["教育", "AI"], esg_preference: "无明确偏好", liquidity_needs: "无随时支取需求" }
+    },
+    market_intelligence_report: "## 📊 市场概览\n- 主要指数估值处于中高位\n- 成长风格波动加大\n- 建议分批布局",
+    market_realtime_data: { 宏观经济: [{ 标题: "2025经济发展向新向优", 来源: "财经媒体", 摘要: "GDP平稳增长，政策支持科技创新" }] },
+    risk_metrics: { 风险等级: "激进型", VaR_95: { 单日: -0.026, 年度: -0.41 }, 夏普比率: 0.9 },
+    risk_assessment_report: "## 📋 风险评估摘要\n- 整体风险等级：中\n- 与用户匹配度：匹配\n- 关键风险：成长板块估值波动",
+    asset_allocation_model: {
+      配置比例: { 股票类: 0.8, 债券类: 0.1, 现金及等价物: 0.05, 另类投资: 0.05 },
+      详细配置: { 沪深300指数基金: 0.304, 中证500指数基金: 0.248, 创业板ETF: 0.152, 科技ETF: 0.08, 新能源ETF: 0.016, 信用债基金: 0.1, 货币市场基金: 0.05, 黄金ETF: 0.05 }
+    },
+    investment_calculation: {
+      复利计算: { 初始投资: 80000, 预期年化收益率: "10.0%", 持有年限: 5, 期末价值: 128840.8, 总收益率: "61.05%" },
+      不同情景分析: [{ 情景: "悲观", 总收益率: 27.63 }, { 情景: "基准", 总收益率: 61.05 }, { 情景: "乐观", 总收益率: 101.14 }]
+    },
+    visualization_data: {
+      资产配置饼图: { 数据: { 标签: ["沪深300指数基金", "中证500指数基金", "创业板ETF", "科技ETF", "新能源ETF", "信用债基金", "货币市场基金", "黄金ETF"], 比例: [30.4, 24.8, 15.2, 8, 1.6, 10, 5, 5] } },
+      定投收益曲线: { 数据: { 系列: [{ 名称: "累计投入", 数据: [1333.33, 2666.67, 4000, 5333.33, 6666.67, 8000] }, { 名称: "累计价值", 数据: [1333.33, 2677.78, 4033.43, 5400.37, 6778.71, 8168.53] }] } }
+    }
+  };
+
+  const PAGES = [
+    { id: 'overview', label: '首页总览' },
+    { id: 'history', label: '历史记录' },
+    { id: 'm1', label: '模块1 市场情报' },
+    { id: 'm2', label: '模块2 风险计算' },
+    { id: 'm3', label: '模块3 资产配置' },
+    { id: 'm4', label: '模块4 投资计算' },
+    { id: 'm5', label: '模块5 风险评估' },
+    { id: 'm6', label: '模块6 投资策略' }
+  ];
+
   const state = {
     token: localStorage.getItem('sessionToken') || '',
     user: JSON.parse(localStorage.getItem('sessionUser') || 'null'),
-    selected: null,
-    stepIndex: 0,
+    currentPage: 'overview',
+    selected: DEFAULT_DATA,
+    selectedRecord: null,
     historyPage: 1,
     historyPageSize: 5,
     historyTotal: 0,
-    history: [],
-    selectedRecord: null
+    history: []
   };
-
-  const steps = [
-    '1️⃣ market_intelligence（市场情报）',
-    '2️⃣ risk_calculation（风险计算）',
-    '3️⃣ asset_allocation（资产配置）',
-    '4️⃣ investment_calculator（投资计算）',
-    '5️⃣ risk_assessment（风险评估）',
-    '6️⃣ investment_strategy（投资策略）'
-  ];
 
   const el = (id) => document.getElementById(id);
   const authCard = el('authCard');
   const mainArea = el('mainArea');
 
-  function setAuthView() {
-    const loggedIn = Boolean(state.token && state.user);
-    authCard.classList.toggle('hidden', loggedIn);
-    mainArea.classList.toggle('hidden', !loggedIn);
-    if (loggedIn) {
-      el('currentUser').textContent = state.user.username;
-      loadHistory();
-    }
-    state.history = data.items;
-    state.historyTotal = data.total;
-    renderHistory();
-    if (!state.selectedRecord && state.history.length) loadRecord(state.history[0].id);
-  }
-
+  function esc(text) { return String(text || '').replace(/</g, '&lt;'); }
   function api(path, options = {}) {
     const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
     if (state.token) headers.Authorization = `Bearer ${state.token}`;
     return fetch(path, { ...options, headers });
+  }
+  function get(obj, path, fallback = null) { return path.reduce((acc, k) => (acc && acc[k] !== undefined ? acc[k] : null), obj) ?? fallback; }
+
+  function renderProfile() {
+    const data = state.selected || DEFAULT_DATA;
+    const profile = data.user_profile || {};
+    const b = get(profile, ['basic'], {});
+    const g = get(profile, ['goal'], {});
+    const r = get(profile, ['risk_tolerance'], {});
+    const p = get(profile, ['preferences'], {});
+
+    const badges = [
+      `年龄段：${b.age_group || '-'}`,
+      `可投金额：${b.investable_assets || '-'} ${b.asset_currency || ''}`,
+      `目标：${g.specific_goal || '-'} / ${g.investment_horizon || '-'}`,
+      `风险等级：${r.risk_level || '-'}`,
+      `偏好行业：${(p.preferred_sectors || []).join('、') || '-'}`
+    ];
+    el('profileBadges').innerHTML = badges.map(x => `<span class="profile-badge">${esc(x)}</span>`).join('');
+    el('profileRaw').textContent = JSON.stringify(profile, null, 2);
+  }
+
+  function renderNav() {
+    const nav = el('pageNav');
+    nav.innerHTML = '';
+    PAGES.forEach((p) => {
+      const btn = document.createElement('button');
+      btn.textContent = p.label;
+      if (state.currentPage === p.id) btn.classList.add('active');
+      btn.onclick = () => switchPage(p.id);
+      nav.appendChild(btn);
+    });
+  }
+
+  function switchPage(pageId) {
+    state.currentPage = pageId;
+    renderNav();
+    el('view-overview').classList.toggle('hidden', pageId !== 'overview');
+    el('view-history').classList.toggle('hidden', pageId !== 'history');
+    el('view-module').classList.toggle('hidden', !pageId.startsWith('m'));
+    if (pageId === 'overview') renderOverview();
+    if (pageId === 'history') renderHistoryPage();
+    if (pageId.startsWith('m')) renderModulePage(pageId);
   }
 
   async function auth(path) {
@@ -160,16 +273,9 @@
     const password = el('password').value;
     const msg = el('authMsg');
     msg.textContent = '';
-    const resp = await fetch(path, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
+    const resp = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
     const data = await resp.json();
-    if (!resp.ok) {
-      msg.textContent = data.error || '操作失败';
-      return;
-    }
+    if (!resp.ok) { msg.textContent = data.error || '操作失败'; return; }
     if (path.endsWith('/login')) {
       state.token = data.token;
       state.user = data.user;
@@ -177,7 +283,7 @@
       localStorage.setItem('sessionUser', JSON.stringify(state.user));
       setAuthView();
     } else {
-      msg.style.color = '#166534';
+      msg.style.color = '#34d399';
       msg.textContent = data.message;
     }
   }
@@ -185,18 +291,12 @@
   async function runWorkflow() {
     const workflow_token = el('workflowToken').value.trim();
     const user_input = el('userInput').value.trim();
-    const resp = await api('/api/run', {
-      method: 'POST',
-      body: JSON.stringify({ workflow_token, user_input })
-    });
+    const resp = await api('/api/run', { method: 'POST', body: JSON.stringify({ workflow_token, user_input }) });
     const data = await resp.json();
-    if (!resp.ok) {
-      alert(data.error || '调用失败');
-      return;
-    }
-    state.selected = data.data;
-    state.stepIndex = 0;
-    renderStep();
+    if (!resp.ok) { alert(data.error || '调用失败'); return; }
+    state.selected = data.data || DEFAULT_DATA;
+    renderProfile();
+    renderOverview();
     await loadHistory(1);
   }
 
@@ -205,133 +305,160 @@
     const resp = await api(`/api/history?page=${page}&pageSize=${state.historyPageSize}`);
     const data = await resp.json();
     if (!resp.ok) {
-      if (resp.status === 401) {
-        doLogout();
-        return;
-      }
+      if (resp.status === 401) return doLogout();
       alert(data.error || '加载历史失败');
       return;
     }
-    state.history = data.items;
-    state.historyTotal = data.total;
-    renderHistory();
-    if (!state.selectedRecord && state.history.length) loadRecord(state.history[0].id);
+    state.history = data.items || [];
+    state.historyTotal = data.total || 0;
+    if (!state.selectedRecord && state.history.length) await loadRecord(state.history[0].id, false);
+    renderHistoryPage();
   }
 
-  function renderHistory() {
+  async function loadRecord(id, jumpModule = false) {
+    const resp = await api(`/api/history/${id}`);
+    const data = await resp.json();
+    if (!resp.ok) { alert(data.error || '加载记录详情失败'); return; }
+    state.selectedRecord = data;
+    state.selected = data.response || DEFAULT_DATA;
+    renderProfile();
+    renderHistoryPage();
+    if (jumpModule) switchPage('m1');
+  }
+
+  function renderOverview() {
+    const container = el('view-overview');
+    container.innerHTML = `
+      <h3>首页总览（发送请求 + 返回展示）</h3>
+      <div class="row">
+        <div>
+          <label>Coze Workflow Token</label>
+          <input id="workflowToken" type="password" placeholder="Bearer token（不含 Bearer 前缀）" />
+        </div>
+        <div>
+          <label>用户输入画像文本</label>
+          <textarea id="userInput">我今年25岁职场新人，年收入14万，每年8万可投资，偏好AI与教育，风险激进。</textarea>
+        </div>
+      </div>
+      <button id="runBtn" class="primary" style="margin-top:10px;">发送到工作流并保存结果</button>
+
+      <h4 style="margin-bottom:6px;">模块快捷跳转</h4>
+      <div class="module-grid">
+        <div class="module-tile"><b>1️⃣ 市场情报</b><p>market_intelligence</p><button class="inline secondary" data-module-jump="m1">进入模块页</button></div>
+        <div class="module-tile"><b>2️⃣ 风险计算</b><p>risk_calculation</p><button class="inline secondary" data-module-jump="m2">进入模块页</button></div>
+        <div class="module-tile"><b>3️⃣ 资产配置</b><p>asset_allocation</p><button class="inline secondary" data-module-jump="m3">进入模块页</button></div>
+        <div class="module-tile"><b>4️⃣ 投资计算</b><p>investment_calculator</p><button class="inline secondary" data-module-jump="m4">进入模块页</button></div>
+        <div class="module-tile"><b>5️⃣ 风险评估</b><p>risk_assessment</p><button class="inline secondary" data-module-jump="m5">进入模块页</button></div>
+        <div class="module-tile"><b>6️⃣ 投资策略</b><p>investment_strategy</p><button class="inline secondary" data-module-jump="m6">进入模块页</button></div>
+      </div>
+
+      <h4 style="margin-bottom:6px;">返回结果 JSON（默认展示示例数据，调用后自动刷新）</h4>
+      <div class="mono">${esc(JSON.stringify(state.selected || DEFAULT_DATA, null, 2))}</div>
+    `;
+    el('runBtn').onclick = runWorkflow;
+    container.querySelectorAll('[data-module-jump]').forEach((btn) => {
+      btn.onclick = () => switchPage(btn.dataset.moduleJump);
+    });
+  }
+
+  function renderHistoryPage() {
+    const record = state.selectedRecord;
+    const pages = Math.max(Math.ceil(state.historyTotal / state.historyPageSize), 1);
+    el('view-history').innerHTML = `
+      <h3>历史记录（独立页面，查数据库）</h3>
+      <div id="historyList"></div>
+      <div style="display:flex;gap:8px;align-items:center;margin:8px 0 12px;">
+        <button id="prevHistory" class="inline secondary">上一页</button>
+        <button id="nextHistory" class="inline secondary">下一页</button>
+        <span>第 ${state.historyPage} / ${pages} 页，共 ${state.historyTotal} 条</span>
+      </div>
+      <h4>历史详情 / 六模块复现入口</h4>
+      <div class="row">
+        <div><label>决策输入参数（user_input）</label><div class="mono">${esc(record?.user_input || '暂无')}</div></div>
+        <div><label>决策输出参数（workflow response）</label><div class="mono">${esc(JSON.stringify(record?.response || {}, null, 2))}</div></div>
+      </div>
+    `;
+
     const list = el('historyList');
-    list.innerHTML = '';
     state.history.forEach((item) => {
       const div = document.createElement('div');
       div.className = 'history-item';
-      div.innerHTML = `<b>#${item.id}</b> ${new Date(item.created_at).toLocaleString()}<br/><small>${item.user_input.slice(0, 120)}</small><br/><small>workflow: ${item.workflow_url}</small> <small>token: ${item.token_mask || '-'}</small><br/>`;
-      const btn = document.createElement('button');
-      btn.className = 'inline';
-      btn.textContent = '查看参数并复现六模块';
-      btn.onclick = () => loadRecord(item.id);
-      div.appendChild(btn);
+      div.innerHTML = `
+        <b>#${item.id}</b> ${new Date(item.created_at).toLocaleString()}<br>
+        <small>${esc(item.user_input.slice(0, 120))}</small><br>
+        <small>workflow: ${esc(item.workflow_url)} | token: ${esc(item.token_mask || '-')}</small><br>
+      `;
+      const btn1 = document.createElement('button');
+      btn1.className = 'inline';
+      btn1.textContent = '查看并复现完整六模块';
+      btn1.onclick = () => loadRecord(item.id, false);
+      const btn2 = document.createElement('button');
+      btn2.className = 'inline secondary';
+      btn2.style.marginLeft = '8px';
+      btn2.textContent = '复现并跳转模块1';
+      btn2.onclick = () => loadRecord(item.id, true);
+      div.appendChild(btn1);
+      div.appendChild(btn2);
       list.appendChild(div);
     });
-    const totalPages = Math.max(Math.ceil(state.historyTotal / state.historyPageSize), 1);
-    el('historyPageInfo').textContent = `第 ${state.historyPage} / ${totalPages} 页，共 ${state.historyTotal} 条`;
+
+    el('prevHistory').onclick = () => { if (state.historyPage > 1) loadHistory(state.historyPage - 1); };
+    el('nextHistory').onclick = () => { if (state.historyPage < pages) loadHistory(state.historyPage + 1); };
   }
 
-  function get(obj, path, fallback = null) {
-    return path.reduce((acc, k) => acc && acc[k] !== undefined ? acc[k] : null, obj) ?? fallback;
-  }
+  function renderModulePage(pageId) {
+    const data = state.selected || DEFAULT_DATA;
+    const moduleNum = Number(pageId.slice(1));
+    const view = el('view-module');
 
-  function renderChips() {
-    const chips = el('stepChips');
-    chips.innerHTML = '';
-    steps.forEach((s, i) => {
-      const span = document.createElement('span');
-      span.className = `step-chip ${state.stepIndex === i ? 'active' : ''}`;
-      span.textContent = s;
-      span.onclick = () => { state.stepIndex = i; renderStep(); };
-      chips.appendChild(span);
-    });
-  }
-
-  function renderChart(containerId, option) {
-    const node = document.getElementById(containerId);
-    if (!node) return;
-    const chart = echarts.init(node);
-    chart.setOption(option);
-  }
-
-  function renderStep() {
-    renderChips();
-    el('stepLabel').textContent = steps[state.stepIndex];
-    const data = state.selected || {};
-    const c = el('stepContent');
-
-    if (state.stepIndex === 0) {
-      c.innerHTML = `
-        <h4>市场情报报告</h4>
-        <div class="mono">${(data.market_intelligence_report || '暂无').replace(/</g, '&lt;')}</div>
-        <h4>市场实时数据</h4>
-        <div class="mono">${JSON.stringify(data.market_realtime_data || {}, null, 2)}</div>`;
-    } else if (state.stepIndex === 1) {
-      c.innerHTML = `<h4>风险计算结果</h4><div class="mono">${JSON.stringify(data.risk_metrics || {}, null, 2)}</div>`;
-    } else if (state.stepIndex === 2) {
-      c.innerHTML = `
-        <h4>资产配置模型</h4><div class="mono">${JSON.stringify(data.asset_allocation_model || {}, null, 2)}</div>
-        <div id="pie" class="chart"></div>`;
+    if (moduleNum === 1) {
+      view.innerHTML = `<h3>模块1：market_intelligence（市场情报）</h3><div class="mono">${esc(data.market_intelligence_report || '暂无')}</div><h4>实时数据</h4><div class="mono">${esc(JSON.stringify(data.market_realtime_data || {}, null, 2))}</div>`;
+    } else if (moduleNum === 2) {
+      view.innerHTML = `<h3>模块2：risk_calculation（风险计算）</h3><div class="mono">${esc(JSON.stringify(data.risk_metrics || {}, null, 2))}</div>`;
+    } else if (moduleNum === 3) {
+      view.innerHTML = `<h3>模块3：asset_allocation（资产配置）</h3><div class="mono">${esc(JSON.stringify(data.asset_allocation_model || {}, null, 2))}</div><div id="pie" class="chart"></div>`;
       const pie = get(data, ['visualization_data', '资产配置饼图', '数据']);
       if (pie && pie.标签) {
-        renderChart('pie', {
+        echarts.init(document.getElementById('pie')).setOption({
           tooltip: { trigger: 'item' },
-          series: [{ type: 'pie', radius: ['40%', '70%'], data: pie.标签.map((n, i) => ({ name: n, value: pie.比例[i] })) }]
+          series: [{ type: 'pie', radius: ['38%', '72%'], data: pie.标签.map((name, i) => ({ name, value: pie.比例[i] })) }]
         });
       }
-    } else if (state.stepIndex === 3) {
-      c.innerHTML = `<h4>投资计算</h4><div class="mono">${JSON.stringify(data.investment_calculation || {}, null, 2)}</div><div id="line" class="chart"></div>`;
-      const d = get(data, ['visualization_data', '定投收益曲线', '数据']);
-      if (d && d.系列) {
-        const len = d.系列[0]?.数据?.length || 0;
-        renderChart('line', {
+    } else if (moduleNum === 4) {
+      view.innerHTML = `<h3>模块4：investment_calculator（投资计算）</h3><div class="mono">${esc(JSON.stringify(data.investment_calculation || {}, null, 2))}</div><div id="line" class="chart"></div>`;
+      const line = get(data, ['visualization_data', '定投收益曲线', '数据', '系列']);
+      if (line && line.length) {
+        const len = line[0].数据.length;
+        echarts.init(document.getElementById('line')).setOption({
           tooltip: { trigger: 'axis' },
-          legend: { data: d.系列.map(s => s.名称) },
-          xAxis: { type: 'category', data: Array.from({length: len}, (_, i) => i + 1) },
-          yAxis: { type: 'value' },
-          series: d.系列.map(s => ({ type: 'line', smooth: true, name: s.名称, data: s.数据 }))
+          legend: { data: line.map(x => x.名称), textStyle: { color: '#dbeafe' } },
+          xAxis: { type: 'category', data: Array.from({ length: len }, (_, i) => i + 1), axisLabel: { color: '#dbeafe' } },
+          yAxis: { type: 'value', axisLabel: { color: '#dbeafe' } },
+          series: line.map(x => ({ type: 'line', smooth: true, name: x.名称, data: x.数据 }))
         });
       }
-    } else if (state.stepIndex === 4) {
-      c.innerHTML = `<h4>风险评估报告</h4><div class="mono">${(data.risk_assessment_report || '暂无').replace(/</g, '&lt;')}</div>`;
+    } else if (moduleNum === 5) {
+      view.innerHTML = `<h3>模块5：risk_assessment（风险评估）</h3><div class="mono">${esc(data.risk_assessment_report || '暂无')}</div>`;
     } else {
-      c.innerHTML = `<h4>投资策略建议</h4><div class="mono">${(data.investment_advice || '暂无').replace(/</g, '&lt;')}</div>`;
+      view.innerHTML = `<h3>模块6：investment_strategy（投资策略）</h3><div class="mono">${esc(data.investment_advice || '暂无')}</div>`;
     }
   }
 
-  function renderRecordParams() {
-    const record = state.selectedRecord;
-    if (!record) return;
-    el('recordMeta').textContent = `记录ID: ${record.id} | 时间: ${new Date(record.created_at).toLocaleString()} | 工作流: ${record.workflow_url} | Token: ${record.token_mask || '-'}`;
-    el('recordInput').textContent = record.user_input || '';
-    el('recordOutput').textContent = JSON.stringify(record.response || {}, null, 2);
-  }
-
-  async function loadRecord(id) {
-    const resp = await api(`/api/history/${id}`);
-    const data = await resp.json();
-    if (!resp.ok) {
-      alert(data.error || '加载记录详情失败');
-      return;
-    }
-    state.selectedRecord = data;
-    state.selected = data.response;
-    state.stepIndex = 0;
-    renderRecordParams();
-    renderStep();
+  function setAuthView() {
+    const loggedIn = Boolean(state.token && state.user);
+    authCard.classList.toggle('hidden', loggedIn);
+    mainArea.classList.toggle('hidden', !loggedIn);
+    if (!loggedIn) return;
+    el('currentUser').textContent = state.user.username;
+    renderProfile();
+    renderNav();
+    switchPage(state.currentPage);
+    loadHistory();
   }
 
   function doLogout() {
     state.token = '';
     state.user = null;
-    state.history = [];
-    state.selected = null;
-    state.selectedRecord = null;
     localStorage.removeItem('sessionToken');
     localStorage.removeItem('sessionUser');
     setAuthView();
@@ -339,18 +466,7 @@
 
   el('loginBtn').onclick = () => auth('/api/auth/login');
   el('registerBtn').onclick = () => auth('/api/auth/register');
-  el('logoutBtn').onclick = async () => {
-    await api('/api/auth/logout', { method: 'POST' });
-    doLogout();
-  };
-  el('runBtn').onclick = runWorkflow;
-  el('prevHistory').onclick = () => { if (state.historyPage > 1) loadHistory(state.historyPage - 1); };
-  el('nextHistory').onclick = () => {
-    const totalPages = Math.max(Math.ceil(state.historyTotal / state.historyPageSize), 1);
-    if (state.historyPage < totalPages) loadHistory(state.historyPage + 1);
-  };
-  el('prevStep').onclick = () => { state.stepIndex = (state.stepIndex + steps.length - 1) % steps.length; renderStep(); };
-  el('nextStep').onclick = () => { state.stepIndex = (state.stepIndex + 1) % steps.length; renderStep(); };
+  el('logoutBtn').onclick = async () => { await api('/api/auth/logout', { method: 'POST' }); doLogout(); };
 
   setAuthView();
 })();
