@@ -57,6 +57,79 @@ function normalizeWorkflowResponse(payload) {
   return root;
 }
 
+function extractModulePayload(normalized) {
+  const payload = normalized && typeof normalized === 'object' ? normalized : {};
+  return {
+    core: {
+      user_profile: payload.user_profile ?? null,
+      raw_response: payload
+    },
+    market_intelligence: {
+      market_intelligence_report: payload.market_intelligence_report ?? null,
+      market_realtime_data: payload.market_realtime_data ?? null
+    },
+    risk_calculation: {
+      risk_metrics: payload.risk_metrics ?? null
+    },
+    asset_allocation: {
+      asset_allocation_model: payload.asset_allocation_model ?? null
+    },
+    investment_calculator: {
+      investment_calculation: payload.investment_calculation ?? null,
+      visualization_data: payload.visualization_data ?? null
+    },
+    risk_assessment: {
+      risk_assessment_report: payload.risk_assessment_report ?? null
+    },
+    investment_strategy: {
+      investment_advice: payload.investment_advice ?? null
+    }
+  };
+}
+
+async function saveWorkflowModules(connection, recordId, normalized) {
+  const modulePayload = extractModulePayload(normalized);
+  await connection.query(
+    `INSERT INTO workflow_response_core (record_id, user_profile_json, raw_response_json)
+     VALUES (?, ?, ?)`,
+    [recordId, JSON.stringify(modulePayload.core.user_profile), JSON.stringify(modulePayload.core.raw_response)]
+  );
+  await connection.query(
+    `INSERT INTO module_market_intelligence (record_id, market_intelligence_report, market_realtime_data_json)
+     VALUES (?, ?, ?)`,
+    [recordId, modulePayload.market_intelligence.market_intelligence_report, JSON.stringify(modulePayload.market_intelligence.market_realtime_data)]
+  );
+  await connection.query(
+    `INSERT INTO module_risk_calculation (record_id, risk_metrics_json)
+     VALUES (?, ?)`,
+    [recordId, JSON.stringify(modulePayload.risk_calculation.risk_metrics)]
+  );
+  await connection.query(
+    `INSERT INTO module_asset_allocation (record_id, asset_allocation_model_json)
+     VALUES (?, ?)`,
+    [recordId, JSON.stringify(modulePayload.asset_allocation.asset_allocation_model)]
+  );
+  await connection.query(
+    `INSERT INTO module_investment_calculator (record_id, investment_calculation_json, visualization_data_json)
+     VALUES (?, ?, ?)`,
+    [
+      recordId,
+      JSON.stringify(modulePayload.investment_calculator.investment_calculation),
+      JSON.stringify(modulePayload.investment_calculator.visualization_data)
+    ]
+  );
+  await connection.query(
+    `INSERT INTO module_risk_assessment (record_id, risk_assessment_report)
+     VALUES (?, ?)`,
+    [recordId, modulePayload.risk_assessment.risk_assessment_report]
+  );
+  await connection.query(
+    `INSERT INTO module_investment_strategy (record_id, investment_advice)
+     VALUES (?, ?)`,
+    [recordId, modulePayload.investment_strategy.investment_advice]
+  );
+}
+
 async function ensureDb() {
   const bootstrapConn = await mysql.createConnection({
     host: dbConfig.host,
@@ -81,10 +154,61 @@ async function ensureDb() {
       user_input TEXT NOT NULL,
       workflow_url VARCHAR(255) NOT NULL,
       token_mask VARCHAR(30),
-      response_json LONGTEXT NOT NULL,
       created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
       INDEX idx_user_time(user_id, created_at DESC),
       CONSTRAINT fk_records_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`);
+  await pool.query(`CREATE TABLE IF NOT EXISTS workflow_response_core (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      record_id BIGINT NOT NULL UNIQUE,
+      user_profile_json LONGTEXT,
+      raw_response_json LONGTEXT NOT NULL,
+      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT fk_core_record FOREIGN KEY (record_id) REFERENCES workflow_records(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`);
+  await pool.query(`CREATE TABLE IF NOT EXISTS module_market_intelligence (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      record_id BIGINT NOT NULL UNIQUE,
+      market_intelligence_report LONGTEXT,
+      market_realtime_data_json LONGTEXT,
+      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT fk_market_record FOREIGN KEY (record_id) REFERENCES workflow_records(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`);
+  await pool.query(`CREATE TABLE IF NOT EXISTS module_risk_calculation (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      record_id BIGINT NOT NULL UNIQUE,
+      risk_metrics_json LONGTEXT,
+      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT fk_risk_calc_record FOREIGN KEY (record_id) REFERENCES workflow_records(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`);
+  await pool.query(`CREATE TABLE IF NOT EXISTS module_asset_allocation (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      record_id BIGINT NOT NULL UNIQUE,
+      asset_allocation_model_json LONGTEXT,
+      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT fk_asset_record FOREIGN KEY (record_id) REFERENCES workflow_records(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`);
+  await pool.query(`CREATE TABLE IF NOT EXISTS module_investment_calculator (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      record_id BIGINT NOT NULL UNIQUE,
+      investment_calculation_json LONGTEXT,
+      visualization_data_json LONGTEXT,
+      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT fk_calc_record FOREIGN KEY (record_id) REFERENCES workflow_records(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`);
+  await pool.query(`CREATE TABLE IF NOT EXISTS module_risk_assessment (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      record_id BIGINT NOT NULL UNIQUE,
+      risk_assessment_report LONGTEXT,
+      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT fk_assess_record FOREIGN KEY (record_id) REFERENCES workflow_records(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`);
+  await pool.query(`CREATE TABLE IF NOT EXISTS module_investment_strategy (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      record_id BIGINT NOT NULL UNIQUE,
+      investment_advice LONGTEXT,
+      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT fk_strategy_record FOREIGN KEY (record_id) REFERENCES workflow_records(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`);
 }
 
@@ -135,13 +259,6 @@ app.post('/api/auth/logout', authMiddleware, (req, res) => {
   res.json({ message: '已退出登录' });
 });
 
-});
-
-app.post('/api/auth/logout', authMiddleware, (req, res) => {
-  sessionStore.delete(req.sessionToken);
-  res.json({ message: '已退出登录' });
-});
-
 app.get('/api/history', authMiddleware, async (req, res) => {
   const page = Math.max(Number(req.query.page || 1), 1);
   const pageSize = Math.min(Math.max(Number(req.query.pageSize || 5), 1), 20);
@@ -165,19 +282,48 @@ app.get('/api/history/:id', authMiddleware, async (req, res) => {
   if (!id) return res.status(400).json({ error: '无效的记录ID' });
 
   const [rows] = await pool.query(
-    'SELECT id, user_input, workflow_url, token_mask, response_json, created_at FROM workflow_records WHERE id = ? AND user_id = ? LIMIT 1',
+    `SELECT wr.id, wr.user_input, wr.workflow_url, wr.token_mask, wr.created_at,
+            wrc.raw_response_json, wrc.user_profile_json,
+            mmi.market_intelligence_report, mmi.market_realtime_data_json,
+            mrc.risk_metrics_json,
+            maa.asset_allocation_model_json,
+            mic.investment_calculation_json, mic.visualization_data_json,
+            mra.risk_assessment_report,
+            mis.investment_advice
+       FROM workflow_records wr
+       LEFT JOIN workflow_response_core wrc ON wrc.record_id = wr.id
+       LEFT JOIN module_market_intelligence mmi ON mmi.record_id = wr.id
+       LEFT JOIN module_risk_calculation mrc ON mrc.record_id = wr.id
+       LEFT JOIN module_asset_allocation maa ON maa.record_id = wr.id
+       LEFT JOIN module_investment_calculator mic ON mic.record_id = wr.id
+       LEFT JOIN module_risk_assessment mra ON mra.record_id = wr.id
+       LEFT JOIN module_investment_strategy mis ON mis.record_id = wr.id
+      WHERE wr.id = ? AND wr.user_id = ? LIMIT 1`,
     [id, req.user.id]
   );
   if (!rows.length) return res.status(404).json({ error: '记录不存在' });
 
   const row = rows[0];
+  const fallbackResponse = {
+    user_profile: safeJsonParse(row.user_profile_json),
+    market_intelligence_report: row.market_intelligence_report,
+    market_realtime_data: safeJsonParse(row.market_realtime_data_json),
+    risk_metrics: safeJsonParse(row.risk_metrics_json),
+    asset_allocation_model: safeJsonParse(row.asset_allocation_model_json),
+    investment_calculation: safeJsonParse(row.investment_calculation_json),
+    visualization_data: safeJsonParse(row.visualization_data_json),
+    risk_assessment_report: row.risk_assessment_report,
+    investment_advice: row.investment_advice
+  };
+
   return res.json({
     id: row.id,
     user_input: row.user_input,
     workflow_url: row.workflow_url,
     token_mask: row.token_mask,
     created_at: row.created_at,
-    response: safeJsonParse(row.response_json)
+    response: safeJsonParse(row.raw_response_json) || fallbackResponse,
+    module_data: fallbackResponse
   });
 });
 
@@ -197,7 +343,21 @@ app.post('/api/run', authMiddleware, async (req, res) => {
     if (!response.ok) return res.status(response.status).json({ error: '工作流请求失败', detail: normalized || rawText });
 
     const tokenMask = `${workflow_token.slice(0, 4)}****${workflow_token.slice(-4)}`;
-    await pool.query('INSERT INTO workflow_records (user_id, user_input, workflow_url, token_mask, response_json) VALUES (?, ?, ?, ?, ?)', [req.user.id, user_input, WORKFLOW_URL, tokenMask, JSON.stringify(normalized)]);
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+      const [insertResult] = await connection.query(
+        'INSERT INTO workflow_records (user_id, user_input, workflow_url, token_mask) VALUES (?, ?, ?, ?)',
+        [req.user.id, user_input, WORKFLOW_URL, tokenMask]
+      );
+      await saveWorkflowModules(connection, insertResult.insertId, normalized);
+      await connection.commit();
+    } catch (txErr) {
+      await connection.rollback();
+      throw txErr;
+    } finally {
+      connection.release();
+    }
     return res.json({ data: normalized });
   } catch (error) {
     console.error('run error:', error);

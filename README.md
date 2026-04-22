@@ -74,6 +74,13 @@ npm start
 
 - `users`
 - `workflow_records`
+- `workflow_response_core`
+- `module_market_intelligence`
+- `module_risk_calculation`
+- `module_asset_allocation`
+- `module_investment_calculator`
+- `module_risk_assessment`
+- `module_investment_strategy`
 
 ---
 
@@ -102,12 +109,24 @@ FROM workflow_records
 ORDER BY id DESC;
 ```
 
-查看某条记录完整输出：
+查看某条记录完整输出（按六个模块拆表存储）：
 
 ```sql
-SELECT id, response_json
-FROM workflow_records
-WHERE id = 1;
+SELECT wr.id,
+       mmi.market_intelligence_report,
+       mrc.risk_metrics_json,
+       maa.asset_allocation_model_json,
+       mic.investment_calculation_json,
+       mra.risk_assessment_report,
+       mis.investment_advice
+FROM workflow_records wr
+LEFT JOIN module_market_intelligence mmi ON mmi.record_id = wr.id
+LEFT JOIN module_risk_calculation mrc ON mrc.record_id = wr.id
+LEFT JOIN module_asset_allocation maa ON maa.record_id = wr.id
+LEFT JOIN module_investment_calculator mic ON mic.record_id = wr.id
+LEFT JOIN module_risk_assessment mra ON mra.record_id = wr.id
+LEFT JOIN module_investment_strategy mis ON mis.record_id = wr.id
+WHERE wr.id = 1;
 ```
 
 ---
